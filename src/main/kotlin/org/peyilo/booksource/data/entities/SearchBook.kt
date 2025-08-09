@@ -81,23 +81,4 @@ data class SearchBook(
         return type and BookType.allBookTypeLocal == bookType and BookType.allBookTypeLocal
     }
 
-    fun toBook() = Book(
-        name = name,
-        author = author,
-        kind = kind,
-        bookUrl = bookUrl,
-        origin = origin,
-        originName = originName,
-        type = type,
-        wordCount = wordCount,
-        latestChapterTitle = latestChapterTitle,
-        coverUrl = coverUrl,
-        intro = intro,
-        tocUrl = tocUrl,
-        originOrder = originOrder,
-        variable = variable
-    ).apply {
-        this.infoHtml = this@SearchBook.infoHtml
-        this.tocHtml = this@SearchBook.tocHtml
-    }
 }

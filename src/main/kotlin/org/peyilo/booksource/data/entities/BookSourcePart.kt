@@ -1,6 +1,6 @@
 package org.peyilo.booksource.data.entities
 
-import android.TextUtils
+import android.text.TextUtils
 import org.peyilo.booksource.constant.AppPattern
 import org.peyilo.booksource.utils.splitNotBlank
 

@@ -4,7 +4,6 @@ import android.Log
 import org.peyilo.booksource.BuildConfig
 import org.peyilo.booksource.help.config.AppConfig
 import org.peyilo.booksource.utils.LogUtils
-import org.peyilo.booksource.utils.toastOnUi
 
 object AppLog {
 

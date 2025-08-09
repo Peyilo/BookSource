@@ -1,7 +1,5 @@
 package org.peyilo.booksource.constant
 
-import androidx.annotation.IntDef
-
 @Suppress("ConstPropertyName")
 object SourceType {
 
@@ -10,7 +8,6 @@ object SourceType {
 
     @Target(AnnotationTarget.VALUE_PARAMETER)
     @Retention(AnnotationRetention.SOURCE)
-    @IntDef(book, rss)
     annotation class Type
 
 }

@@ -1,8 +1,7 @@
 package org.peyilo.booksource.utils
 
-import android.annotation.SuppressLint
 import android.text.TextUtils.isEmpty
-import android.Base64
+import android.util.Base64
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException
@@ -56,7 +55,7 @@ object StringUtils {
     fun dateConvert(source: String, pattern: String): String {
         val format = SimpleDateFormat(pattern, Locale.getDefault())
         val calendar = Calendar.getInstance()
-        kotlin.runCatching {
+        runCatching {
             val date = format.parse(source) ?: return ""
             val curTime = calendar.timeInMillis
             calendar.time = date
@@ -73,7 +72,6 @@ object StringUtils {
                     difDate == 0L -> "今天"
                     difDate < DAY_OF_YESTERDAY -> "昨天"
                     else -> {
-                        @SuppressLint("SimpleDateFormat")
                         val convertFormat = SimpleDateFormat("yyyy-MM-dd")
                         convertFormat.format(date)
                     }
@@ -86,7 +84,6 @@ object StringUtils {
                 difHour < HOUR_OF_DAY -> difHour.toString() + "小时前"
                 difDate < DAY_OF_YESTERDAY -> "昨天"
                 else -> {
-                    @SuppressLint("SimpleDateFormat")
                     val convertFormat = SimpleDateFormat("yyyy-MM-dd")
                     convertFormat.format(date)
                 }
@@ -100,7 +97,6 @@ object StringUtils {
     /**
      * 首字母大写
      */
-    @SuppressLint("DefaultLocale")
     fun toFirstCapital(str: String): String {
         return str.substring(0, 1).uppercase(Locale.getDefault()) + str.substring(1)
     }
@@ -165,7 +161,7 @@ object StringUtils {
         }
 
         // "一千零二十五", "一千二" 形式
-        return kotlin.runCatching {
+        return runCatching {
             for (i in cn.indices) {
                 val tmpNum = ChnMap[cn[i]]!!
                 when {
@@ -209,7 +205,7 @@ object StringUtils {
     fun stringToInt(str: String?): Int {
         if (str != null) {
             val num = fullToHalf(str).replace("\\s+".toRegex(), "")
-            return kotlin.runCatching {
+            return runCatching {
                 Integer.parseInt(num)
             }.getOrElse {
                 chineseNumToInt(num)
@@ -317,7 +313,7 @@ object StringUtils {
      * 压缩字符串
      */
     fun compress(str: String): Result<String> {
-        return kotlin.runCatching {
+        return runCatching {
             if (str.isEmpty()) {
                 return@runCatching str
             }
@@ -343,7 +339,7 @@ object StringUtils {
      */
     @Throws(IOException::class)
     fun unCompress(str: String): Result<String> {
-        return kotlin.runCatching {
+        return runCatching {
             val outputStream = ByteArrayOutputStream()
             var inputStream: ByteArrayInputStream? = null
             var ginZip: GZIPInputStream? = null

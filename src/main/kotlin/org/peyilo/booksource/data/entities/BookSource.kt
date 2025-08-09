@@ -5,7 +5,7 @@ import org.peyilo.booksource.data.entities.rule.*
 import org.peyilo.booksource.utils.GSON
 import org.peyilo.booksource.utils.fromJsonObject
 import org.peyilo.booksource.utils.splitNotBlank
-import android.TextUtils
+import android.text.TextUtils
 
 data class BookSource(
     // 地址，包括 http/https
@@ -25,17 +25,17 @@ data class BookSource(
     // 启用发现
     var enabledExplore: Boolean = true,
     // js库
-    override var jsLib: String? = null,
+    var jsLib: String? = null,
     // 启用okhttp CookieJAr 自动保存每次请求的cookie
-    override var enabledCookieJar: Boolean? = true,
+    var enabledCookieJar: Boolean? = true,
     // 并发率
-    override var concurrentRate: String? = null,
+    var concurrentRate: String? = null,
     // 请求头
-    override var header: String? = null,
+    var header: String? = null,
     // 登录地址
-    override var loginUrl: String? = null,
+    var loginUrl: String? = null,
     // 登录UI
-    override var loginUi: String? = null,
+    var loginUi: String? = null,
     // 登录检测js
     var loginCheckJs: String? = null,
     // 封面解密js
@@ -68,15 +68,7 @@ data class BookSource(
     var ruleContent: ContentRule? = null,
     // 段评规则
     var ruleReview: ReviewRule? = null
-): BaseSource {
-
-    override fun getTag(): String {
-        return bookSourceName
-    }
-
-    override fun getKey(): String {
-        return bookSourceUrl
-    }
+) {
 
     override fun hashCode(): Int {
         return bookSourceUrl.hashCode()

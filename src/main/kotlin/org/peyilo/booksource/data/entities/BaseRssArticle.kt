@@ -1,6 +1,5 @@
 package org.peyilo.booksource.data.entities
 
-import org.peyilo.booksource.help.RuleBigDataHelp
 import org.peyilo.booksource.model.analyzeRule.RuleDataInterface
 import org.peyilo.booksource.utils.GSON
 
@@ -16,14 +15,6 @@ interface BaseRssArticle : RuleDataInterface {
             variable = GSON.toJson(variableMap)
         }
         return true
-    }
-
-    override fun putBigVariable(key: String, value: String?) {
-        RuleBigDataHelp.putRssVariable(origin, link, key, value)
-    }
-
-    override fun getBigVariable(key: String): String? {
-        return RuleBigDataHelp.getRssVariable(origin, link, key)
     }
 
 }

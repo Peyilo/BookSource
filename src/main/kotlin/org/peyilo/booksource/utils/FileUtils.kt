@@ -1,9 +1,5 @@
 package org.peyilo.booksource.utils
 
-import android.os.Environment
-import android.webkit.MimeTypeMap
-import androidx.annotation.IntDef
-import splitties.init.appCtx
 import java.io.*
 import java.nio.charset.Charset
 import java.text.SimpleDateFormat
@@ -89,20 +85,6 @@ object FileUtils {
         return path.toString()
     }
 
-    fun getCachePath(): String {
-        return appCtx.externalCache.absolutePath
-    }
-
-    fun getSdCardPath(): String {
-        var sdCardDirectory = Environment.getExternalStorageDirectory().absolutePath
-        try {
-            sdCardDirectory = File(sdCardDirectory).canonicalPath
-        } catch (e: IOException) {
-            e.printOnDebug()
-        }
-        return sdCardDirectory
-    }
-
     const val BY_NAME_ASC = 0
     const val BY_NAME_DESC = 1
     const val BY_TIME_ASC = 2
@@ -112,8 +94,6 @@ object FileUtils {
     const val BY_EXTENSION_ASC = 6
     const val BY_EXTENSION_DESC = 7
 
-    @IntDef(value = [BY_NAME_ASC, BY_NAME_DESC, BY_TIME_ASC, BY_TIME_DESC, BY_SIZE_ASC, BY_SIZE_DESC, BY_EXTENSION_ASC, BY_EXTENSION_DESC])
-    @Retention(AnnotationRetention.SOURCE)
     annotation class SortType
 
     /**
@@ -581,14 +561,6 @@ object FileUtils {
     }
 
     /**
-     * 获取格式化后的文件大小
-     */
-    fun getSize(path: String): String {
-        val fileSize = getLength(path)
-        return ConvertUtils.formatFileSize(fileSize)
-    }
-
-    /**
      * 获取文件后缀,不包括“.”
      */
     fun getExtension(pathOrUrl: String): String {
@@ -598,15 +570,6 @@ object FileUtils {
         } else {
             "ext"
         }
-    }
-
-    /**
-     * 获取文件的MIME类型
-     */
-    fun getMimeType(pathOrUrl: String): String {
-        val ext = getExtension(pathOrUrl)
-        val map = MimeTypeMap.getSingleton()
-        return map.getMimeTypeFromExtension(ext) ?: "*/*"
     }
 
     /**
@@ -698,11 +661,7 @@ object FileUtils {
                 } else {
                     val s1 = f1.name
                     val s2 = f2.name
-                    if (caseSensitive) {
-                        s1.cnCompare(s2)
-                    } else {
-                        s1.compareTo(s2, ignoreCase = true)
-                    }
+                    s1.compareTo(s2, ignoreCase = true)
                 }
             }
         }

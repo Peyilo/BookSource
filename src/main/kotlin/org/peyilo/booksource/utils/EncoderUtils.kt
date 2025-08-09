@@ -1,6 +1,6 @@
 package org.peyilo.booksource.utils
 
-import android.Base64
+import android.util.Base64
 
 /**
  * 编码工具 escape base64

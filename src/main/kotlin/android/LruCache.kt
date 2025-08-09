@@ -5,7 +5,7 @@ package android
  * - 默认按“条目个数”限流
  * - 也可传 weigher 让每个条目有自定义权重（比如字节数），行为类似 Android LruCache.sizeOf()
  */
-class LruCache<K, V>(
+open class LruCache<K, V>(
     private val maxSize: Int,
     private val weigher: ((key: K, value: V) -> Int)? = null
 ) {

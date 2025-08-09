@@ -1,6 +1,5 @@
 package org.peyilo.booksource.constant
 
-import cn.hutool.crypto.digest.DigestUtil
 import org.peyilo.booksource.BuildConfig
 import org.peyilo.booksource.help.update.AppVariant
 import org.apache.commons.lang3.time.FastDateFormat

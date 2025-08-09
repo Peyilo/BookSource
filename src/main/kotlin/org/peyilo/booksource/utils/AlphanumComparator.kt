@@ -1,6 +1,5 @@
 package org.peyilo.booksource.utils
 
-
 /**
  * 排序比较
  */

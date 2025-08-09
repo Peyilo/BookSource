@@ -1,6 +1,5 @@
 package org.peyilo.booksource.model.analyzeRule;
 
-
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;

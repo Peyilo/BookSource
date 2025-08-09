@@ -1,6 +1,5 @@
 package org.peyilo.booksource.data.entities
 
-import org.peyilo.booksource.help.RuleBigDataHelp
 import org.peyilo.booksource.model.analyzeRule.RuleDataInterface
 import org.peyilo.booksource.utils.GSON
 import org.peyilo.booksource.utils.splitNotBlank
@@ -32,11 +31,11 @@ interface BaseBook : RuleDataInterface {
     }
 
     override fun putBigVariable(key: String, value: String?) {
-        RuleBigDataHelp.putBookVariable(bookUrl, key, value)
+
     }
 
     override fun getBigVariable(key: String): String? {
-        return RuleBigDataHelp.getBookVariable(bookUrl, key)
+        return ""
     }
 
     fun getKindList(): List<String> {
