@@ -8,17 +8,22 @@ import java.io.FileReader
 import java.io.InputStream
 import java.io.InputStreamReader
 
-fun parseBookSource(inputStream: InputStream): Array<BookSource>? {
+fun parseBookSource(inputStream: InputStream): BookSource {
+    val gson = Gson()
+    return gson.fromJson(BufferedReader(InputStreamReader(inputStream)), BookSource::class.java)
+}
+
+fun parseBookSources(inputStream: InputStream): Array<BookSource>? {
     val gson = Gson()
     return gson.fromJson(BufferedReader(InputStreamReader(inputStream)), Array<BookSource>::class.java)
 }
 
-fun parseBookSource(file: File): Array<BookSource>? {
+fun parseBookSources(file: File): Array<BookSource>? {
     val gson = Gson()
     return gson.fromJson(BufferedReader(FileReader(file)), Array<BookSource>::class.java)
 }
 
-fun parseBookSource(path: String): Array<BookSource>? {
+fun parseBookSources(path: String): Array<BookSource>? {
     val gson = Gson()
     return gson.fromJson(BufferedReader(FileReader(path)), Array<BookSource>::class.java)
 }

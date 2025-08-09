@@ -18,8 +18,8 @@ json-path = { module = "com.jayway.jsonpath:json-path", version.ref = "jsonPath"
 # 若要升级请确保相关代码不会受此变更影响（如AnalyzeByJSoup.kt、JsoupXpath库等）
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 jsoupxpath = { module = "cn.wanghaomiao:JsoupXpath", version.ref = "jsoupxpath" }
-rhino = { module = "org.mozilla:rhino", version.ref = "rhino" }
 
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 
 hutool-crypto = { module = "cn.hutool:hutool-crypto", version.ref = "hutool" }
+mozilla-rhino = { module = "org.mozilla:rhino", version.ref = "rhino" }

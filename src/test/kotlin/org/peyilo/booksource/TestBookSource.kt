@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.peyilo.booksource.data.entities.BookSource;
 
 import java.io.*;
+import java.net.CookieManager
 
 class TestBookSource {
 
@@ -26,15 +27,13 @@ class TestBookSource {
 
     @Test
     fun test2() {
-        val bookSources = getResourceAsStream("b778fe6b.json").use { inputStream ->
+        val bookSource = getResourceAsStream("demo.json").use { inputStream ->
              parseBookSource(inputStream)
         }
-        requireNotNull(bookSources) { "Book source not found" }
-
-
-        println("book sources size: ${bookSources.size}")
-        println()
+        requireNotNull(bookSource) { "Book source not found" }
+        println(bookSource.toString())
 
     }
+
 
 }

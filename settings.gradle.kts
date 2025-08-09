@@ -4,3 +4,7 @@ plugins {
 rootProject.name = "BookSource"
 include("modules")
 include("modules:rhino")
+include("Modules")
+include("Modules:rhino")
+include("modules")
+include("modules:rhino")

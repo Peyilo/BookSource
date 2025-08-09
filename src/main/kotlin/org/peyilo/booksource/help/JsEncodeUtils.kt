@@ -1,6 +1,6 @@
 package org.peyilo.booksource.help
 
-import android.util.Base64
+import android.Base64
 import cn.hutool.crypto.digest.DigestUtil
 import cn.hutool.crypto.digest.HMac
 import cn.hutool.crypto.symmetric.SymmetricCrypto
