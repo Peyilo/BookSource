@@ -1,4 +1,4 @@
-package org.peyilo.booksource.entities.rule
+package org.peyilo.booksource.data.entities.rule
 
 /**
  * 书籍列表规则

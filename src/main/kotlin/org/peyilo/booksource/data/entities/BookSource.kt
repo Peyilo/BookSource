@@ -1,6 +1,6 @@
-package org.peyilo.booksource.entities
+package org.peyilo.booksource.data.entities
 
-import org.peyilo.booksource.entities.rule.*
+import org.peyilo.booksource.data.entities.rule.*
 
 data class BookSource(
     var bookSourceUrl: String = "",

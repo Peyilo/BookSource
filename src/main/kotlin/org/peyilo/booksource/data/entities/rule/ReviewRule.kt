@@ -1,4 +1,7 @@
-package org.peyilo.booksource.entities.rule
+package org.peyilo.booksource.data.entities.rule
+
+import com.google.gson.JsonDeserializer
+import org.peyilo.booksource.utils.INITIAL_GSON
 
 data class ReviewRule(
     var reviewUrl: String? = null,          // 段评URL
@@ -13,4 +16,18 @@ data class ReviewRule(
     var postReviewUrl: String? = null,      // 发送回复URL
     var postQuoteUrl: String? = null,       // 发送回复段评URL
     var deleteUrl: String? = null,          // 删除段评URL
-)
+) {
+
+    companion object {
+
+        val jsonDeserializer = JsonDeserializer<ReviewRule?> { json, _, _ ->
+            when {
+                json.isJsonObject -> INITIAL_GSON.fromJson(json, ReviewRule::class.java)
+                json.isJsonPrimitive -> INITIAL_GSON.fromJson(json.asString, ReviewRule::class.java)
+                else -> null
+            }
+        }
+
+    }
+
+}

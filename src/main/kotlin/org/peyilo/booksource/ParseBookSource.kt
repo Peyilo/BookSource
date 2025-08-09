@@ -1,7 +1,7 @@
 package org.peyilo.booksource
 
 import com.google.gson.Gson
-import org.peyilo.booksource.entities.BookSource
+import org.peyilo.booksource.data.entities.BookSource
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader

@@ -11,8 +11,18 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
-    implementation("org.mozilla:rhino:1.7.15")
-    implementation("com.google.code.gson:gson:2.13.1")
+
+    implementation(libs.jsoup)
+    implementation(libs.json.path)
+    implementation(libs.jsoupxpath)
+    implementation(libs.gson)
+    implementation(libs.rhino)
+
+    implementation(libs.kotlinx.coroutines.core)
+
+    //加解密类库,有些书源使用
+    //noinspection GradleDependency,GradlePackageUpdate
+    implementation(libs.hutool.crypto)
 }
 
 tasks.test {

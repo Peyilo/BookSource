@@ -1,4 +1,7 @@
-package org.peyilo.booksource.entities.rule
+package org.peyilo.booksource.data.entities.rule
+
+import com.google.gson.JsonDeserializer
+import org.peyilo.booksource.utils.INITIAL_GSON
 
 /**
  * 搜索结果处理规则
@@ -16,4 +19,18 @@ data class SearchRule(
     override var bookUrl: String? = null,
     override var coverUrl: String? = null,
     override var wordCount: String? = null
-) : BookListRule
+) : BookListRule {
+
+    companion object {
+
+        val jsonDeserializer = JsonDeserializer<SearchRule?> { json, _, _ ->
+            when {
+                json.isJsonObject -> INITIAL_GSON.fromJson(json, SearchRule::class.java)
+                json.isJsonPrimitive -> INITIAL_GSON.fromJson(json.asString, SearchRule::class.java)
+                else -> null
+            }
+        }
+
+    }
+
+}

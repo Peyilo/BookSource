@@ -1,4 +1,4 @@
-package org.peyilo.booksource.entities.rule
+package org.peyilo.booksource.data.entities.rule
 
 data class RowUi(
     var name: String,
