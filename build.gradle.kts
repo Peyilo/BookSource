@@ -29,7 +29,6 @@ dependencies {
     implementation("org.json:json:20240303")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("xmlpull:xmlpull:1.1.3.1")
-
 }
 
 tasks.test {

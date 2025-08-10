@@ -10,10 +10,6 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/Modules" />
-            <option value="$PROJECT_DIR$/Modules/rhino" />
-            <option value="$PROJECT_DIR$/modules" />
-            <option value="$PROJECT_DIR$/modules/rhino" />
           </set>
         </option>
       </GradleProjectSettings>
