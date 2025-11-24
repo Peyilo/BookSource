@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include <nlohmann/json.hpp>
-#include "peyilo_rule.h"
+#include "booksource.h"
 
 using json = nlohmann::json;
 
@@ -84,8 +84,6 @@ class JsonParser {
     }
 
     static void parse(const json& j, BookSource& o) {
-
-        // 基础字段
         o.bookSourceUrl   = j.value("bookSourceUrl", "");
         o.bookSourceName  = j.value("bookSourceName", "");
         o.bookSourceGroup = j.value("bookSourceGroup", "");
@@ -96,55 +94,44 @@ class JsonParser {
         o.enabled         = j.value("enabled", true);
         o.enabledExplore  = j.value("enabledExplore", true);
 
-        // 网络
         o.jsLib           = j.value("jsLib", "");
         o.enabledCookieJar= j.value("enabledCookieJar", true);
         o.concurrentRate  = j.value("concurrentRate", "");
         o.header          = j.value("header", "");
 
-        // 登录
         o.loginUrl        = j.value("loginUrl", "");
         o.loginUi         = j.value("loginUi", "");
         o.loginCheckJs    = j.value("loginCheckJs", "");
 
-        // 封面解密
         o.coverDecodeJs   = j.value("coverDecodeJs", "");
 
-        // 注释
         o.bookSourceComment = j.value("bookSourceComment", "");
         o.variableComment   = j.value("variableComment", "");
 
-        // 排序
         o.lastUpdateTime  = j.value("lastUpdateTime", 0LL);
         o.respondTime     = j.value("respondTime", 180000LL);
         o.weight          = j.value("weight", 0);
 
-        // 发现
         o.exploreUrl      = j.value("exploreUrl", "");
         o.exploreScreen   = j.value("exploreScreen", "");
+
+        o.searchUrl = j.value("searchUrl", "");
 
         if (j.contains("ruleExplore"))
             parse(j.at("ruleExplore"), o.ruleExplore);
 
-        // 搜索
-        o.searchUrl = j.value("searchUrl", "");
-
         if (j.contains("ruleSearch"))
             parse(j.at("ruleSearch"), o.ruleSearch);
 
-        // 书籍详情
         if (j.contains("ruleBookInfo"))
             parse(j.at("ruleBookInfo"), o.ruleBookInfo);
 
-        // 目录
         if (j.contains("ruleToc"))
             parse(j.at("ruleToc"), o.ruleToc);
 
-        // 正文
         if (j.contains("ruleContent"))
             parse(j.at("ruleContent"), o.ruleContent);
 
-        // 段评
         if (j.contains("ruleReview"))
             parse(j.at("ruleReview"), o.ruleReview);
     }

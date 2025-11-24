@@ -6,8 +6,10 @@ set(CMAKE_CXX_STANDARD 20)
 add_subdirectory(third_party/quickjs)
 
 add_executable(booksource src/main.cpp
-        src/peyilo_rule.h
-        src/peyilo_json_parser.h)
+        src/booksource.h
+        src/booksource_parser.h
+        src/js_utils.cpp
+        src/js_utils.h)
 
 find_package(Threads REQUIRED)
 target_link_libraries(booksource PRIVATE Threads::Threads)
