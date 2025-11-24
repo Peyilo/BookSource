@@ -18,12 +18,8 @@ file(GLOB_RECURSE INCLUDE_FILES
 
 add_library(booksource ${SRC_FILES} ${INCLUDE_FILES})
 
-# 多线程
-find_package(Threads REQUIRED)
-target_link_libraries(booksource PRIVATE Threads::Threads)
-
 # js引擎: quickjs
-target_link_libraries(booksource PRIVATE quickjs)
+target_link_libraries(booksource PUBLIC quickjs)
 
 target_include_directories(booksource
         PUBLIC

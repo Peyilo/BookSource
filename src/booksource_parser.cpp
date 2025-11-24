@@ -149,6 +149,8 @@ std::vector<BookSource> BookSourceParser::parseBookSourceList(const std::string&
         return list;
     }
 
+    list.reserve(arr.size());           // 预留空间
+
     for (const auto& item : arr) {
         BookSource o;
         parse(item, o);

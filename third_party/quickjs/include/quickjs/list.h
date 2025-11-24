@@ -82,6 +82,16 @@ static inline int list_empty(struct list_head *el)
     return el->next == el;
 }
 
+static inline int list_size(const struct list_head *head) {
+    int count = 0;
+    const struct list_head *el;
+
+    for (el = head->next; el != head; el = el->next) {
+        count++;
+    }
+    return count;
+}
+
 #define list_for_each(el, head) \
   for(el = (head)->next; el != (head); el = el->next)
 
