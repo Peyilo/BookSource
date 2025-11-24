@@ -1,9 +1,9 @@
 add_library(quickjs
-        cutils.c
-        quickjs.c
-        libregexp.c
-        libunicode.c
-        dtoa.c
+        src/cutils.c
+        src/quickjs.c
+        src/libregexp.c
+        src/libunicode.c
+        src/dtoa.c
 )
 
 # 读取 VERSION 文件内容
@@ -17,5 +17,4 @@ target_compile_definitions(quickjs PRIVATE
         _GNU_SOURCE
 )
 
-target_include_directories(quickjs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-
+target_include_directories(quickjs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/quickjs)

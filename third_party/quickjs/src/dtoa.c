@@ -33,7 +33,7 @@
 #include <setjmp.h>
 
 #include "cutils.h"
-#include "dtoa.h"
+#include "../include/quickjs/dtoa.h"
 
 /* 
    TODO:

@@ -3,7 +3,7 @@
 //
 
 #include "js_utils.h"
-#include <quickjs.h>
+#include <quickjs/quickjs.h>
 #include <iostream>
 
 std::string run_simple_js(const std::string& code) {

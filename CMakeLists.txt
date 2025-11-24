@@ -19,5 +19,5 @@ target_link_libraries(booksource PRIVATE quickjs)
 target_include_directories(booksource
         PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/third_party/json/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/third_party/quickjs
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party/quickjs/include
 )

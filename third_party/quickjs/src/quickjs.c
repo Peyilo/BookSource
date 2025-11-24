@@ -45,7 +45,7 @@
 #include "quickjs.h"
 #include "libregexp.h"
 #include "libunicode.h"
-#include "dtoa.h"
+#include "../include/quickjs/dtoa.h"
 
 #define OPTIMIZE         1
 #define SHORT_OPCODES    1
@@ -1043,7 +1043,9 @@ typedef struct JSMapState {
 enum {
     __JS_ATOM_NULL = JS_ATOM_NULL,
 #define DEF(name, str) JS_ATOM_ ## name,
-#include "quickjs-atom.h"
+#include "../include/quickjs/quickjs-atom.h"
+
+
 
 #undef DEF
     JS_ATOM_END,
@@ -1053,7 +1055,9 @@ enum {
 
 static const char js_atom_init[] =
 #define DEF(name, str) str "\0"
-#include "quickjs-atom.h"
+#include "../include/quickjs/quickjs-atom.h"
+
+
 
 #undef DEF
 ;

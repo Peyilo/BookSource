@@ -28,7 +28,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include "cutils.h"
+#include "../include/quickjs/cutils.h"
 #include "libregexp.h"
 #include "libunicode.h"
 
