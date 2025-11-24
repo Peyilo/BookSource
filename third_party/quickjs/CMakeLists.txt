@@ -17,4 +17,4 @@ target_compile_definitions(quickjs PRIVATE
         _GNU_SOURCE
 )
 
-target_include_directories(quickjs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/quickjs)
+target_include_directories(quickjs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

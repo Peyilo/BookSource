@@ -28,9 +28,9 @@
 #include <string.h>
 #include <assert.h>
 
-#include "../include/quickjs/cutils.h"
-#include "libregexp.h"
-#include "libunicode.h"
+#include "quickjs/cutils.h"
+#include "quickjs/libregexp.h"
+#include "quickjs/libunicode.h"
 
 /*
   TODO:
@@ -49,7 +49,7 @@
 
 typedef enum {
 #define DEF(id, size) REOP_ ## id,
-#include "libregexp-opcode.h"
+#include "quickjs/libregexp-opcode.h"
 
 #undef DEF
     REOP_COUNT,
@@ -102,7 +102,7 @@ static const REOpCode reopcode_info[REOP_COUNT] = {
 #else
 #define DEF(id, size) { size },
 #endif
-#include "libregexp-opcode.h"
+#include "quickjs/libregexp-opcode.h"
 
 #undef DEF
 };

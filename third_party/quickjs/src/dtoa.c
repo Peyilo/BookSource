@@ -23,17 +23,14 @@
  */
 #include <stdlib.h>
 #include <stdio.h>
-#include <stdarg.h>
 #include <inttypes.h>
 #include <string.h>
 #include <assert.h>
-#include <ctype.h>
 #include <sys/time.h>
 #include <math.h>
-#include <setjmp.h>
 
-#include "cutils.h"
-#include "../include/quickjs/dtoa.h"
+#include <quickjs/cutils.h>
+#include <quickjs/dtoa.h>
 
 /* 
    TODO:

@@ -40,12 +40,12 @@
 #include <malloc_np.h>
 #endif
 
-#include "cutils.h"
-#include "list.h"
-#include "quickjs.h"
-#include "libregexp.h"
-#include "libunicode.h"
-#include "../include/quickjs/dtoa.h"
+#include "quickjs/cutils.h"
+#include "quickjs/list.h"
+#include "quickjs/quickjs.h"
+#include "quickjs/libregexp.h"
+#include "quickjs/libunicode.h"
+#include "quickjs/dtoa.h"
 
 #define OPTIMIZE         1
 #define SHORT_OPCODES    1
@@ -1043,7 +1043,7 @@ typedef struct JSMapState {
 enum {
     __JS_ATOM_NULL = JS_ATOM_NULL,
 #define DEF(name, str) JS_ATOM_ ## name,
-#include "../include/quickjs/quickjs-atom.h"
+#include "quickjs/quickjs-atom.h"
 
 
 
@@ -1055,7 +1055,7 @@ enum {
 
 static const char js_atom_init[] =
 #define DEF(name, str) str "\0"
-#include "../include/quickjs/quickjs-atom.h"
+#include "quickjs/quickjs-atom.h"
 
 
 
@@ -1065,7 +1065,7 @@ static const char js_atom_init[] =
 typedef enum OPCodeFormat {
 #define FMT(f) OP_FMT_ ## f,
 #define DEF(id, size, n_pop, n_push, f)
-#include "quickjs-opcode.h"
+#include "quickjs/quickjs-opcode.h"
 
 #undef DEF
 #undef FMT
@@ -1075,7 +1075,7 @@ enum OPCodeEnum {
 #define FMT(f)
 #define DEF(id, size, n_pop, n_push, f) OP_ ## id,
 #define def(id, size, n_pop, n_push, f)
-#include "quickjs-opcode.h"
+#include "quickjs/quickjs-opcode.h"
 
 #undef def
 #undef DEF
@@ -1087,7 +1087,7 @@ enum OPCodeEnum {
 #define FMT(f)
 #define DEF(id, size, n_pop, n_push, f)
 #define def(id, size, n_pop, n_push, f) OP_ ## id,
-#include "quickjs-opcode.h"
+#include "quickjs/quickjs-opcode.h"
 
 #undef def
 #undef DEF
@@ -17379,7 +17379,7 @@ static JSValue JS_CallInternal(JSContext *caller_ctx, JSValueConst func_obj,
 #else
 #define def(id, size, n_pop, n_push, f) && case_default,
 #endif
-#include "quickjs-opcode.h"
+#include "quickjs/quickjs-opcode.h"
 
         [ OP_COUNT ... 255 ] = &&case_default
     };
@@ -21570,7 +21570,7 @@ static const JSOpCode opcode_info[OP_COUNT + (OP_TEMP_END - OP_TEMP_START)] = {
 #else
 #define DEF(id, size, n_pop, n_push, f) { size, n_pop, n_push, OP_FMT_ ## f },
 #endif
-#include "quickjs-opcode.h"
+#include "quickjs/quickjs-opcode.h"
 
 #undef DEF
 #undef FMT
