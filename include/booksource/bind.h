@@ -126,7 +126,9 @@ public:
     }
 
     /// 设置类名，仅用于调试/错误信息
-    static void setClassName(const std::string &name);
+    static void setClassName(const std::string &name) {
+        s_className = name;
+    }
 
 private:
     struct FieldBase {

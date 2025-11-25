@@ -1,4 +1,5 @@
 #include <booksource/engine.h>
+#include <iostream>
 
 QuickJsEngine::QuickJsEngine() {
     runtime = JS_NewRuntime();
@@ -55,6 +56,10 @@ void QuickJsEngine::addBinding(const std::string &name, const std::string &value
     JS_FreeValue(context, global);
 }
 
+void QuickJsEngine::addBinding(const std::string &name, const char *value) const {
+    addBinding(name, std::string(value));
+}
+
 void QuickJsEngine::addBinding(const std::string &name, const int value) const {
     const JSValue global = JS_GetGlobalObject(context);
     const JSValue num = JS_NewInt32(context, value);
@@ -76,3 +81,32 @@ void QuickJsEngine::addBinding(const std::string &name, const bool value) const 
     JS_FreeValue(context, global);
 }
 
+// 供js中调用的屏幕输出函数
+static JSValue js_print(
+    JSContext* ctx,
+    JSValueConst _,
+    const int argc,
+    JSValueConst* argv) {
+    for (int i = 0; i < argc; i++) {
+        const char* str = JS_ToCString(ctx, argv[i]);
+        if (!str)
+            return JS_EXCEPTION;
+
+        std::cout << str;
+        JS_FreeCString(ctx, str);
+
+        if (i + 1 < argc)
+            std::cout << " ";
+    }
+
+    std::cout << std::endl;
+    return JS_UNDEFINED;
+}
+
+void QuickJsEngine::addPrintFunc(const std::string &funcName) const {
+    const JSValue global = JS_GetGlobalObject(context);
+    JS_SetPropertyStr(context,global,
+        funcName.c_str(),JS_NewCFunction(context, js_print, funcName.c_str(), 1)
+    );
+    JS_FreeValue(context, global);
+}

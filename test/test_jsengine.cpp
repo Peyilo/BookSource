@@ -28,8 +28,8 @@ void test_bind(const QuickJsEngine &engine) {
 
 int main() {
     QuickJsEngine engine;
-    // test_reset(engine);
-    // test_bind(engine);
+    test_reset(engine);
+    test_bind(engine);
 
     const auto script =
     "let sort = [];\n"

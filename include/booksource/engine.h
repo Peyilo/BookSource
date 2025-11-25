@@ -3,7 +3,7 @@
 #include <stdexcept>
 #include <quickjs/quickjs.h>
 #include <string>
-#include <booksource/js_binder.h>
+#include <booksource/bind.h>
 
 class QuickJsEngine {
 public:
@@ -18,6 +18,7 @@ public:
 
     /// 添加全局变量绑定
     void addBinding(const std::string &name, const std::string &value) const;
+    void addBinding(const std::string &name, const char *value) const;
     void addBinding(const std::string& name, int value) const;
     void addBinding(const std::string& name, double value) const;
     void addBinding(const std::string& name, bool value) const;
@@ -38,6 +39,9 @@ public:
         JS_SetPropertyStr(context, global, name.c_str(), obj);
         JS_FreeValue(context, global);
     }
+
+    // 添加一个全局函数：用于屏幕打印
+    void addPrintFunc(const std::string &funcName) const;
 
     JSContext* getContext() const { return context; }
 

@@ -1,7 +1,6 @@
 //
 // Created by Peyilo on 2025/11/25.
 //
-#include <quickjs/quickjs.h>
 #include <iostream>
 #include <booksource/engine.h>
 #include <fstream>
@@ -43,48 +42,9 @@ void test_complex_js(QuickJsEngine &engine) {
     std::cout << "[Result] " << result << std::endl;
 }
 
-// 供js中调用print
-// 在quickjs中，函数被定义为：typedef JSValue JSCFunction(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv);
-// 其中，argc是参数数量，而argv则是参数数组
-static JSValue js_print(
-    JSContext* ctx,
-    JSValueConst _,
-    const int argc,
-    JSValueConst* argv) {
-    for (int i = 0; i < argc; i++) {
-        const char* str = JS_ToCString(ctx, argv[i]);
-        if (!str)
-            return JS_EXCEPTION;
-
-        std::cout << str;
-        JS_FreeCString(ctx, str);
-
-        if (i + 1 < argc)
-            std::cout << " ";
-    }
-
-    std::cout << std::endl;
-    return JS_UNDEFINED;
-}
-
-// 绑定print函数
-void add_print(JSContext* ctx) {
-    const JSValue global = JS_GetGlobalObject(ctx);
-
-    JS_SetPropertyStr(
-        ctx,
-        global,
-        "print",
-        JS_NewCFunction(ctx, js_print, "print", 1)
-    );
-
-    JS_FreeValue(ctx, global);
-}
-
-
 int main() {
     QuickJsEngine engine;
-    add_print(engine.getContext());
+    engine.addPrintFunc("print");
     test_complex_js(engine);
     engine.reset();
     return 0;
