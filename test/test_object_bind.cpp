@@ -35,7 +35,7 @@ void exeJs(const QuickJsEngine &engine, const std::string &code) {
 }
 
 int main() {
-    const QuickJsEngine engine;
+    QuickJsEngine engine;
     initBookClassInfo();
 
     Book book{"first book", "first author"};
@@ -62,13 +62,12 @@ int main() {
     exeJs(engine, "book2.test(5, 6, book2)");
 
     // 检查基础类型的绑定是否为双向的
-    // TODO: 不是双向的，实际上是
     int num = 123;
     engine.addValueBinding("num", &num);
     exeJs(engine, "num = 456;");
     std::cout << "num: " << num << std::endl;
     num = 789;
-    // engine.deleteValue("num");
+    engine.deleteValue("num");
     exeJs(engine, "num;");
 
     return 0;

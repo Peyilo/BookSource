@@ -1,6 +1,11 @@
 #include <booksource/engine.h>
 #include <iostream>
 
+// 定义静态成员
+std::atomic<int> QuickJsEngine::s_nextEngineId{1};
+std::shared_mutex QuickJsEngine::s_engineRegistryMutex;
+std::unordered_map<int, QuickJsEngine*> QuickJsEngine::s_engineRegistry;
+
 QuickJsEngine::QuickJsEngine() {
     runtime = JS_NewRuntime();
     if (!runtime) throw std::runtime_error("Failed to create JSRuntime");
@@ -10,11 +15,60 @@ QuickJsEngine::QuickJsEngine() {
         JS_FreeRuntime(runtime);
         throw std::runtime_error("Failed to create JSContext");
     }
+
+    // 分配全局唯一的 engineID
+    engineID = s_nextEngineId.fetch_add(1, std::memory_order_relaxed);
+
+    // 注册到全局 map
+    {
+        std::unique_lock lock(s_engineRegistryMutex);
+        s_engineRegistry[engineID] = this;
+    }
+
+    // 把 engineID 写到 context 的 opaque 里，后面回调可以拿这个 ID 再查 map
+    // 注意用 uintptr_t 中转，避免未定义行为
+    JS_SetContextOpaque(
+        context,
+        reinterpret_cast<void*>(static_cast<uintptr_t>(engineID))
+    );
 }
 
 QuickJsEngine::~QuickJsEngine() {
+    // 先从全局注册表里移除
+    {
+        std::unique_lock lock(s_engineRegistryMutex);
+        if (const auto it = s_engineRegistry.find(engineID); it != s_engineRegistry.end())
+            s_engineRegistry.erase(it);
+    }
     if (context) JS_FreeContext(context);
     if (runtime) JS_FreeRuntime(runtime);
+}
+
+QuickJsEngine* QuickJsEngine::fromContext(JSContext* ctx) {
+    if (!ctx) return nullptr;
+
+    void* opaque = JS_GetContextOpaque(ctx);
+    if (!opaque) return nullptr;
+
+    // 还原 engineID
+    const auto id = static_cast<int>(reinterpret_cast<uintptr_t>(opaque));
+
+    std::shared_lock lock(s_engineRegistryMutex);
+    const auto it = s_engineRegistry.find(id);
+    if (it == s_engineRegistry.end())
+        return nullptr;
+
+    return it->second;
+}
+
+QuickJsEngine* QuickJsEngine::getEngineById(const int id) {
+    std::shared_lock lock(s_engineRegistryMutex);
+
+    const auto it = s_engineRegistry.find(id);
+    if (it == s_engineRegistry.end())
+        return nullptr;
+
+    return it->second;
 }
 
 std::string QuickJsEngine::eval(const std::string &code) const {
@@ -47,6 +101,11 @@ void QuickJsEngine::reset() {
     if (!context) {
         throw std::runtime_error("Failed to recreate JSContext during reset()");
     }
+
+    JS_SetContextOpaque(
+        context,
+        reinterpret_cast<void*>(static_cast<uintptr_t>(engineID))
+    );
 }
 
 void QuickJsEngine::addValue(const std::string &name, const std::string &value) const {
@@ -117,12 +176,13 @@ void QuickJsEngine::deleteValue(const std::string &name) {
 
     const JSValue global = JS_GetGlobalObject(context);
     const JSAtom atom = JS_NewAtom(context, name.c_str());
-
-    // 删除属性
     JS_DeleteProperty(context, global, atom, JS_PROP_THROW);
-
-
-    // 释放 atom 和 global
     JS_FreeAtom(context, atom);
     JS_FreeValue(context, global);
+
+    if (const auto it = nameToPtrIndex.find(name); it != nameToPtrIndex.end()) {
+        const int id = it->second;
+        boundPtrTable.erase(id);      // 清除指针
+        nameToPtrIndex.erase(it);     // 清除 name-index 映射
+    }
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stdexcept>
+#include <shared_mutex>
 #include <quickjs/quickjs.h>
 #include <string>
 #include <booksource/bind.h>
@@ -28,14 +28,15 @@ public:
     void addValue(const std::string &name, bool value) const;
 
     template<typename T>
-    void addValueBinding(const std::string &name, T *ptr) const {
+    void addValueBinding(const std::string &name, T *ptr) {
         if (!context)
             throw std::runtime_error("QuickJsEngine: context is null");
 
         JSValue global = JS_GetGlobalObject(context);
 
-        // 在全局表里存一份指针，返回一个 int 索引
-        const int id = registerBoundPtr(ptr);
+        // 1. 每个引擎获得属于自己的 index
+        const int id = const_cast<QuickJsEngine *>(this)->registerBoundPtr(ptr);
+        nameToPtrIndex[name] = id; // 记录 name → id
 
         JS_DefinePropertyGetSet(
             context,
@@ -45,11 +46,12 @@ public:
             // getter
             JS_NewCFunctionMagic(
                 context,
-                [](JSContext *ctx, JSValueConst this_val,
-                   int, JSValueConst *, int magic) {
-                    // 通过 magic 拿指针
-                    void *raw = QuickJsEngine::getBoundPtr(magic);
-                    T *p = static_cast<T *>(raw);
+                [](JSContext *ctx, JSValueConst this_val, int, JSValueConst *, int magic) {
+                    const QuickJsEngine *engine = fromContext(ctx);
+                    if (!engine)
+                        return JS_ThrowInternalError(ctx, "Engine not found");
+
+                    T *p = static_cast<T *>(engine->getBoundPtr(magic));
                     return JSConverter<T>::toJS(ctx, *p);
                 },
                 name.c_str(),
@@ -60,10 +62,12 @@ public:
             // setter
             JS_NewCFunctionMagic(
                 context,
-                [](JSContext *ctx, JSValueConst this_val,
-                   int, JSValueConst *argv, int magic) {
-                    void *raw = QuickJsEngine::getBoundPtr(magic);
-                    T *p = static_cast<T *>(raw);
+                [](JSContext *ctx, JSValueConst this_val, int, JSValueConst *argv, int magic) {
+                    const QuickJsEngine *engine = fromContext(ctx);
+                    if (!engine)
+                        return JS_ThrowInternalError(ctx, "Engine not found");
+
+                    T *p = static_cast<T *>(engine->getBoundPtr(magic));
                     *p = JSConverter<T>::fromJS(ctx, argv[0]);
                     return JS_UNDEFINED;
                 },
@@ -105,28 +109,40 @@ public:
 
     JSContext *getContext() const { return context; }
 
+    int getEngineId() const { return engineID; }
+
+    // 通过 JSContext 反查对应的 QuickJsEngine*
+    static QuickJsEngine *fromContext(JSContext *ctx);
+
+    static QuickJsEngine *getEngineById(int id);
+
 private:
     JSRuntime *runtime = nullptr;
     JSContext *context = nullptr;
+    int engineID = 0;
 
-    // TODO: 换成每个实例都有一个
-    // 全局指针表：专门为 magic 做索引
-    static std::vector<void*> &boundPtrTable() {
-        static std::vector<void*> table;
-        return table;
-    }
+    std::unordered_map<int, void *> boundPtrTable;
+    int nextPtrTableId = 0;
+    std::unordered_map<std::string, int> nameToPtrIndex;
 
     // 注册一个指针，返回索引
-    static int registerBoundPtr(void *p) {
-        auto &tbl = boundPtrTable();
-        tbl.push_back(p);
-        return static_cast<int>(tbl.size() - 1);
+    int registerBoundPtr(void *p) {
+        const auto id = nextPtrTableId++;
+        boundPtrTable[id] = p;
+        return id;
     }
 
-    static void *getBoundPtr(int id) {
-        auto &tbl = boundPtrTable();
-        if (id < 0 || static_cast<size_t>(id) >= tbl.size())
+    // 通过索引拿指针
+    void *getBoundPtr(const int id) const {
+        const auto it = boundPtrTable.find(id);
+        if (it == boundPtrTable.end())
             return nullptr;
-        return tbl[id];
+        return it->second;
     }
+
+private:
+    // 下一个js引擎的ID（全局唯一）
+    static std::atomic<int> s_nextEngineId;
+    static std::shared_mutex s_engineRegistryMutex;
+    static std::unordered_map<int, QuickJsEngine *> s_engineRegistry;
 };
