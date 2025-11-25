@@ -18,9 +18,9 @@ void test_reset(QuickJsEngine &engine) {
 }
 
 void test_bind(const QuickJsEngine &engine) {
-    engine.addBinding("page", "https://google.com");
-    engine.addBinding("book", "Lord of the Rings");
-    engine.addBinding("key", "abcd1234");
+    engine.addValue("page", "https://google.com");
+    engine.addValue("book", "Lord of the Rings");
+    engine.addValue("key", "abcd1234");
 
     const std::string result = engine.eval(R"(page + " / " + book + " / " + key)");
     std::cout << result << std::endl;

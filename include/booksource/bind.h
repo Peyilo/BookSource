@@ -118,8 +118,6 @@ struct MethodTraits<Ret (C::*)(Args...) const> {
     static constexpr bool isConst = true;
 };
 
-
-
 template<typename C, typename FieldType>
 struct FieldTraits<FieldType C::*> {
     using Class = C;
@@ -167,7 +165,7 @@ public:
     }
 
     /// 把原生对象包装成 JS 对象（**不负责释放 Class* 的生命周期**）
-    static JSValue wrap(JSContext *ctx, T *instance) {
+    static JSValue bind(JSContext *ctx, T *instance) {
         ensureClassInit(ctx);
 
         const JSValue obj = JS_NewObjectClass(ctx, s_classId);
