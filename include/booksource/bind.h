@@ -7,6 +7,15 @@
 template<typename T>
 struct JSConverter;
 
+template<typename T>
+struct MethodTraits;
+
+template<typename T>
+struct FieldTraits;
+
+template<typename T>
+class JsBinder;
+
 // int
 template<>
 struct JSConverter<int> {
@@ -56,6 +65,28 @@ struct JSConverter<std::string> {
     }
 };
 
+template<typename U>
+struct JSConverter<U*> {
+    static U* fromJS(JSContext *ctx, JSValueConst v) {
+        return static_cast<U*>(JS_GetOpaque2(ctx, v, JsBinder<U>::getClassID()));
+    }
+
+    static JSValue toJS(JSContext *ctx, U* ptr) {
+        return JsBinder<U>::wrap(ctx, ptr);
+    }
+};
+
+template<typename U>
+struct JSConverter {
+    static U fromJS(JSContext *ctx, JSValueConst v) {
+        return *static_cast<U*>(JS_GetOpaque2(ctx, v, JsBinder<U>::getClassID()));
+    }
+
+    static JSValue toJS(JSContext *ctx, U* ptr) {
+        return JsBinder<U>::wrap(ctx, ptr);
+    }
+};
+
 // 支持 const T& / T& / const T
 template<typename T>
 struct JSConverter<const T &> : JSConverter<T> {
@@ -69,57 +100,75 @@ template<typename T>
 struct JSConverter<const T> : JSConverter<T> {
 };
 
-template<typename Class>
+// 非 const
+template<typename C, typename Ret, typename... Args>
+struct MethodTraits<Ret (C::*)(Args...)> {
+    using Class = C;
+    using Return = Ret;
+    using ArgsTuple = std::tuple<Args...>;
+    static constexpr bool isConst = false;
+};
+
+// const 版本
+template<typename C, typename Ret, typename... Args>
+struct MethodTraits<Ret (C::*)(Args...) const> {
+    using Class = C;
+    using Return = Ret;
+    using ArgsTuple = std::tuple<Args...>;
+    static constexpr bool isConst = true;
+};
+
+
+
+template<typename C, typename FieldType>
+struct FieldTraits<FieldType C::*> {
+    using Class = C;
+    using Type = FieldType;
+};
+
+template<typename T>
 class JsBinder {
 public:
-    template<typename FieldType>
-    using FieldGetter = std::function<FieldType (Class *instance)>;
+    template<typename FieldPtr>
+    static void addField(const std::string &name, FieldPtr ptr) {
+        using Traits = FieldTraits<FieldPtr>;
+        using FieldType = Traits::Type;
 
-    template<typename FieldType>
-    using FieldSetter = std::function<void (Class *instance, FieldType value)>;
-
-    /// 注册一个字段（在 wrap() 时快照为字符串属性）
-    /// 注册字段：getter + setter
-    template<typename FieldType>
-    static void addField(const std::string &name,
-                         FieldGetter<FieldType> getter,
-                         FieldSetter<FieldType> setter) {
         FieldBase base;
         base.name = name;
 
-        // getter 封装成统一类型（返回 JSValue）
-        base.getter = [getter](JSContext *ctx, Class *obj) -> JSValue {
-            FieldType v = getter(obj);
-            return JSConverter<FieldType>::toJS(ctx, v);
+        // getter
+        base.getter = [ptr](JSContext *ctx, T *obj) -> JSValue {
+            return JSConverter<FieldType>::toJS(ctx, obj->*ptr);
         };
 
-        // setter 封装（从 JSValue 转成 FieldType）
-        base.setter = [setter](JSContext *ctx, Class *obj, JSValueConst jsVal) {
-            FieldType native{};
-            native = JSConverter<FieldType>::fromJS(ctx, jsVal);
-            setter(obj, native);
+        // setter
+        base.setter = [ptr](JSContext *ctx, T *obj, JSValueConst jsVal) {
+            obj->*ptr = JSConverter<FieldType>::fromJS(ctx, jsVal);
         };
 
         s_fields.push_back(std::move(base));
     }
 
-    template<typename Ret, typename... Args>
-    static void addMethod(const std::string &name, std::function<Ret(Class *, Args...)> fn) {
+    template<typename Method>
+    static void addMethod(const std::string &name, Method m) {
+        using Traits = MethodTraits<Method>;
+        using Return = Traits::Return;
+        using ArgsTuple = Traits::ArgsTuple;
+
         MethodBase base;
         base.name = name;
 
-        base.invoker = [fn](JSContext *ctx, Class *obj, int argc, JSValueConst *argv) -> JSValue {
-            // 参数解包
-            return invokeHelper<Ret, Args...>(ctx, obj, fn, argv);
+        base.invoker = [m](JSContext *ctx, T *obj, int argc, JSValueConst *argv) -> JSValue {
+            return callMethod<Return>(ctx, obj, m, argv, std::make_index_sequence<std::tuple_size_v<ArgsTuple> >{});
         };
 
         s_methods.push_back(std::move(base));
     }
 
     /// 把原生对象包装成 JS 对象（**不负责释放 Class* 的生命周期**）
-    static JSValue wrap(JSContext *ctx, Class *instance) {
-        JSRuntime *rt = JS_GetRuntime(ctx);
-        ensureClassInit(rt);
+    static JSValue wrap(JSContext *ctx, T *instance) {
+        ensureClassInit(ctx);
 
         const JSValue obj = JS_NewObjectClass(ctx, s_classId);
         if (JS_IsException(obj)) {
@@ -129,25 +178,6 @@ public:
         // 只保存指针，不负责 delete
         JS_SetOpaque(obj, instance);
 
-        // 设置字段（快照）
-        for (const auto &f: s_fields) {
-            JSValue v = f.getter(ctx, instance);
-            JS_SetPropertyStr(ctx, obj, f.name.c_str(), v);
-        }
-
-        // 绑定方法
-        for (int i = 0; i < s_methods.size(); i++) {
-            JSValue fn = JS_NewCFunctionMagic(
-                ctx,
-                &methodDispatcher,
-                s_methods[i].name.c_str(),
-                0,                        // JS 侧参数数量由真实调用解析
-                JS_CFUNC_generic_magic,
-                i                         // magic：方法序号
-            );
-            JS_SetPropertyStr(ctx, obj, s_methods[i].name.c_str(), fn);
-        }
-
         return obj;
     }
 
@@ -156,20 +186,25 @@ public:
         s_className = name;
     }
 
+    static JSClassID getClassID() {
+        return s_classId;
+    }
+
 private:
     struct FieldBase {
         std::string name;
-        std::function<JSValue(JSContext *, Class *)> getter;
-        std::function<void(JSContext *, Class *, JSValueConst)> setter;
+        std::function<JSValue(JSContext *, T *)> getter;
+        std::function<void(JSContext *, T *, JSValueConst)> setter;
     };
 
     struct MethodBase {
         std::string name;
-        std::function<JSValue(JSContext *, Class *, int, JSValueConst *)> invoker;
+        std::function<JSValue(JSContext *, T *, int, JSValueConst *)> invoker;
     };
 
     // 确保Class已经被注册了
-    static void ensureClassInit(JSRuntime *rt) {
+    static void ensureClassInit(JSContext *ctx) {
+        JSRuntime *rt = JS_GetRuntime(ctx);
         if (s_inited)
             return;
 
@@ -183,34 +218,86 @@ private:
             throw std::runtime_error("JS_NewClass failed for " + s_className);
         }
 
+        build(ctx);
+
         s_inited = true;
     }
 
-    template<typename Ret, typename... Args>
-    static JSValue invokeHelper(JSContext *ctx, Class *obj,
-                                std::function<Ret(Class *, Args...)> &fn,
-                                JSValueConst *argv) {
-        std::tuple<Args...> parsedArgs = convertArgs<Args...>(ctx, argv);
-        if constexpr (std::is_void_v<Ret>) {
-            std::apply([&](auto &&... unpacked) { fn(obj, unpacked...); }, parsedArgs);
+    template<typename Return, typename Method, size_t... I>
+    static JSValue callMethod(JSContext *ctx, T *obj,
+                              Method m,
+                              JSValueConst *argv,
+                              std::index_sequence<I...>) {
+        using Traits = MethodTraits<Method>;
+        using ArgsTuple = Traits::ArgsTuple;
+
+        // 参数类型解包
+        auto nativeRet = (obj->*m)(
+            JSConverter<std::tuple_element_t<I, ArgsTuple> >::fromJS(ctx, argv[I])...
+        );
+
+        if constexpr (std::is_same_v<Return, void>) {
             return JS_UNDEFINED;
         } else {
-            Ret r = std::apply([&](auto &&... unpacked) { return fn(obj, unpacked...); }, parsedArgs);
-            return JSConverter<Ret>::toJS(ctx, r);
+            return JSConverter<Return>::toJS(ctx, nativeRet);
         }
     }
 
-    template<typename... Args>
-    static std::tuple<Args...> convertArgs(JSContext *ctx, JSValueConst *argv) {
-        return std::make_tuple(JSConverter<Args>::fromJS(ctx, argv[0])...);
-    }
 
     static JSValue methodDispatcher(JSContext *ctx,
-    JSValueConst this_val, int argc, JSValueConst *argv, int magic)
-    {
-        auto *obj = static_cast<Class*>(JS_GetOpaque2(ctx, this_val, s_classId));
+                                    JSValueConst this_val, int argc, JSValueConst *argv, int magic) {
+        auto *obj = static_cast<T *>(JS_GetOpaque2(ctx, this_val, s_classId));
         if (!obj) return JS_ThrowTypeError(ctx, "Invalid native object");
         return s_methods[magic].invoker(ctx, obj, argc, argv);
+    }
+
+    static void build(JSContext *ctx) {
+        const JSValue proto = JS_NewObject(ctx);
+
+        for (int i = 0; i < s_fields.size(); i++) {
+            const auto &f = s_fields[i];
+
+            JSAtom atom = JS_NewAtom(ctx, f.name.c_str());
+
+            JS_DefinePropertyGetSet(
+                ctx,
+                proto,
+                atom,
+                JS_NewCFunctionMagic(ctx, getterDispatcher, f.name.c_str(), 0, JS_CFUNC_generic_magic, i),
+                JS_NewCFunctionMagic(ctx, setterDispatcher, f.name.c_str(), 1, JS_CFUNC_generic_magic, i),
+                JS_PROP_ENUMERABLE | JS_PROP_CONFIGURABLE
+            );
+
+            JS_FreeAtom(ctx, atom);
+        }
+
+        // 方法绑定（无需 magic index 变更）
+        for (int i = 0; i < s_methods.size(); i++) {
+            JS_SetPropertyStr(
+                ctx,
+                proto,
+                s_methods[i].name.c_str(),
+                JS_NewCFunctionMagic(ctx, &methodDispatcher, s_methods[i].name.c_str(),
+                                     0, JS_CFUNC_generic_magic, i)
+            );
+        }
+
+        JS_SetClassProto(ctx, s_classId, proto);
+    }
+
+    static JSValue getterDispatcher(JSContext *ctx, JSValueConst this_val,
+                                    int argc, JSValueConst *argv, int magic) {
+        auto *obj = static_cast<T *>(JS_GetOpaque2(ctx, this_val, s_classId));
+        if (!obj) return JS_ThrowTypeError(ctx, "Invalid native object");
+        return s_fields[magic].getter(ctx, obj);
+    }
+
+    static JSValue setterDispatcher(JSContext *ctx, JSValueConst this_val,
+                                    int argc, JSValueConst *argv, int magic) {
+        auto *obj = static_cast<T *>(JS_GetOpaque2(ctx, this_val, s_classId));
+        if (!obj) return JS_ThrowTypeError(ctx, "Invalid native object");
+        s_fields[magic].setter(ctx, obj, argv[0]);
+        return JS_UNDEFINED;
     }
 
 private:
@@ -220,3 +307,4 @@ private:
     static inline std::vector<FieldBase> s_fields{};
     static inline std::vector<MethodBase> s_methods{};
 };
+

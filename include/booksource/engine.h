@@ -40,7 +40,7 @@ public:
         JS_FreeValue(context, global);
     }
 
-    // 添加一个全局函数：用于屏幕打印
+    // 添加一个全局函数：用于屏幕打印输出
     void addPrintFunc(const std::string &funcName) const;
 
     JSContext* getContext() const { return context; }
