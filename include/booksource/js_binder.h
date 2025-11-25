@@ -5,44 +5,55 @@
 #include <string>
 #include <vector>
 
-/**
- * 通用绑定器：
- *  - 对每个 T 维护一套 Field / Method 表
- *  - wrap(ctx, T*) 时，根据表自动创建 JS 对象
- *  - 方法回调交给调用者实现（返回 JSValue）
- *
- * 使用方式见 quickjs_engine.h 中的示例。
- */
-template<typename T>
+template<typename Class>
 class JsBinder {
 public:
-    using MethodFunc = std::function<JSValue(JSContext *ctx,
-                                             T *instance,
-                                             int argc,
-                                             JSValueConst *argv)>;
+    template<typename FieldType>
+    using FieldGetter = std::function<FieldType (Class *instance)>;
 
-    using FieldGetter = std::function<std::string(T *instance)>;
+    template<typename FieldType>
+    using FieldSetter = std::function<void (Class *instance, FieldType value)>;
 
-    struct Method {
-        std::string name;
-        MethodFunc  func;
-    };
-
+    template<typename FieldType>
     struct Field {
-        std::string  name;
-        FieldGetter  getter;
+        std::string name;
+        FieldGetter<FieldType> getter;
+        FieldSetter<FieldType> setter;
     };
 
     /// 注册一个字段（在 wrap() 时快照为字符串属性）
-    static void addField(const std::string &name, FieldGetter getter);
+    /// 注册字段：getter + setter
+    template<typename FieldType>
+    static void addField(const std::string &name,
+                         FieldGetter<FieldType> getter,
+                         FieldSetter<FieldType> setter)
+    {
+        // 将字段记录为 type-erased 形式
+        FieldBase base;
+        base.name = name;
 
-    /// 注册一个方法（wrap() 时挂到对象上）
-    static void addMethod(const std::string &name, MethodFunc func);
+        // getter 封装
+        base.getter = [getter](JSContext* ctx, Class* obj) -> JSValue {
+            FieldType v = getter(obj);
+            return toJs(ctx, v);
+        };
 
-    /// 把原生对象包装成 JS 对象（**不负责释放 T* 的生命周期**）
-    static JSValue wrap(JSContext *ctx, T *instance);
+        // setter 封装
+        if (setter) {
+            base.setter = [setter](JSContext* ctx, Class* obj, JSValueConst val) {
+                FieldType native;
+                fromJs(ctx, val, native);
+                setter(obj, native);
+            };
+        }
 
-    /// 可选：设置类名，仅用于调试/错误信息
+        s_fields.push_back(std::move(base));
+    }
+
+    /// 把原生对象包装成 JS 对象（**不负责释放 Class* 的生命周期**）
+    static JSValue wrap(JSContext *ctx, Class *instance);
+
+    /// 设置类名，仅用于调试/错误信息
     static void setClassName(const std::string &name);
 
 private:
@@ -56,12 +67,24 @@ private:
 
     static void finalizer(JSRuntime *rt, JSValue val);
 
+    // ========== C++ <-> JS 类型转换接口（需要你实现） ==========
+    template<typename FieldType>
+    static JSValue toJs(JSContext* ctx, const FieldType& v);
+
+    template<typename FieldType>
+    static void fromJs(JSContext* ctx, JSValueConst js, FieldType& out);
+
 private:
-    static inline JSClassID             s_classId { 0 };
-    static inline bool                 s_inited   { false };
-    static inline std::string          s_className { "NativeObject" };
-    static inline std::vector<Field>   s_fields   {};
-    static inline std::vector<Method>  s_methods  {};
+    struct FieldBase {
+        std::string name;
+        std::function<JSValue(JSContext*, Class*)> getter;
+        std::function<void(JSContext*, Class*, JSValueConst)> setter;
+    };
+
+    static inline JSClassID s_classId{0};
+    static inline bool s_inited{false};
+    static inline std::string s_className{"NativeObject"};
+    static inline std::vector<FieldBase> s_fields{};
 };
 
 #include "js_binder.inl"

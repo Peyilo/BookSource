@@ -1,241 +1,161 @@
 #pragma once
 #include <quickjs/quickjs.h>
 #include <string>
-#include <utility>
-#include <type_traits>
-
-// =======================================================
-// JS <-> C++ 类型转换器
-// =======================================================
+#include <functional>
+#include <vector>
 
 template<typename T>
 struct JSConverter;
 
 // int
-template<> struct JSConverter<int> {
-    static int fromJS(JSContext* ctx, JSValueConst v) {
-        int32_t out; JS_ToInt32(ctx, &out, v); return out;
+template<>
+struct JSConverter<int> {
+    static int fromJS(JSContext *ctx, JSValueConst v) {
+        int32_t out;
+        JS_ToInt32(ctx, &out, v);
+        return out;
     }
-    static JSValue toJS(JSContext* ctx, int v) { return JS_NewInt32(ctx, v); }
+
+    static JSValue toJS(JSContext *ctx, int v) { return JS_NewInt32(ctx, v); }
 };
 
 // double
-template<> struct JSConverter<double> {
-    static double fromJS(JSContext* ctx, JSValueConst v) {
-        double out; JS_ToFloat64(ctx, &out, v); return out;
+template<>
+struct JSConverter<double> {
+    static double fromJS(JSContext *ctx, JSValueConst v) {
+        double out;
+        JS_ToFloat64(ctx, &out, v);
+        return out;
     }
-    static JSValue toJS(JSContext* ctx, double v) { return JS_NewFloat64(ctx, v); }
+
+    static JSValue toJS(JSContext *ctx, double v) { return JS_NewFloat64(ctx, v); }
 };
 
 // bool
-template<> struct JSConverter<bool> {
-    static bool fromJS(JSContext* ctx, JSValueConst v) {
+template<>
+struct JSConverter<bool> {
+    static bool fromJS(JSContext *ctx, JSValueConst v) {
         return JS_ToBool(ctx, v) == 1;
     }
-    static JSValue toJS(JSContext* ctx, bool v) { return JS_NewBool(ctx, v); }
+
+    static JSValue toJS(JSContext *ctx, bool v) { return JS_NewBool(ctx, v); }
 };
 
 // std::string
-template<> struct JSConverter<std::string> {
-    static std::string fromJS(JSContext* ctx, JSValueConst v) {
-        const char* s = JS_ToCString(ctx, v);
+template<>
+struct JSConverter<std::string> {
+    static std::string fromJS(JSContext *ctx, JSValueConst v) {
+        const char *s = JS_ToCString(ctx, v);
         std::string out = s ? s : "";
         JS_FreeCString(ctx, s);
         return out;
     }
-    static JSValue toJS(JSContext* ctx, const std::string& v) {
+
+    static JSValue toJS(JSContext *ctx, const std::string &v) {
         return JS_NewString(ctx, v.c_str());
     }
 };
 
-// =======================================================
-// 🔥 必须补丁：支持 const T& / T& / const T
-// =======================================================
-
+// 支持 const T& / T& / const T
 template<typename T>
-struct JSConverter<const T&> : JSConverter<T> {};
-
-template<typename T>
-struct JSConverter<T&> : JSConverter<T> {};
-
-template<typename T>
-struct JSConverter<const T> : JSConverter<T> {};
-
-
-// =======================================================
-// 类信息 ClassInfo<T>
-// =======================================================
-
-template<typename T>
-struct ClassInfo {
-    static JSClassID classId;
-    static JSValue proto;
+struct JSConverter<const T &> : JSConverter<T> {
 };
 
-template<typename T> JSClassID ClassInfo<T>::classId = 0;
-template<typename T> JSValue ClassInfo<T>::proto = JS_UNDEFINED;
-
-
-// =======================================================
-// 字段绑定：必须使用静态字段指针表
-// =======================================================
-
-template<typename T, typename Field>
-struct FieldInfo {
-    static Field T::* ptr;
+template<typename T>
+struct JSConverter<T &> : JSConverter<T> {
 };
 
-template<typename T, typename Field>
-Field T::* FieldInfo<T,Field>::ptr = nullptr;
-
-
-// getter（必须是纯 C 函数）
-template<typename T, typename Field>
-static JSValue js_field_get(JSContext* ctx,
-                            JSValueConst this_val,
-                            int argc,
-                            JSValueConst* argv)
-{
-    T* obj = static_cast<T*>(JS_GetOpaque2(ctx, this_val, ClassInfo<T>::classId));
-    return JSConverter<Field>::toJS(ctx, obj->*FieldInfo<T,Field>::ptr);
-}
-
-
-// setter
-template<typename T, typename Field>
-static JSValue js_field_set(JSContext* ctx,
-                            JSValueConst this_val,
-                            int argc,
-                            JSValueConst* argv)
-{
-    T* obj = static_cast<T*>(JS_GetOpaque2(ctx, this_val, ClassInfo<T>::classId));
-    obj->*FieldInfo<T,Field>::ptr = JSConverter<Field>::fromJS(ctx, argv[0]);
-    return JS_UNDEFINED;
-}
-
-
-template<typename T, typename Field>
-void bind_field(JSContext* ctx, JSValue proto, const char* name, Field T::* field)
-{
-    FieldInfo<T,Field>::ptr = field;
-
-    JS_DefinePropertyGetSet(
-        ctx,
-        proto,
-        JS_NewAtom(ctx, name),
-        JS_NewCFunction(ctx, js_field_get<T,Field>, name, 0),
-        JS_NewCFunction(ctx, js_field_set<T,Field>, name, 1),
-        0
-    );
-}
-
-
-// =======================================================
-// 方法绑定：必须使用静态方法指针表
-// =======================================================
-
-template<typename T, typename Ret, typename... Args>
-struct MethodInfo {
-    static Ret(T::* ptr)(Args...);
+template<typename T>
+struct JSConverter<const T> : JSConverter<T> {
 };
 
-template<typename T, typename Ret, typename... Args>
-Ret(T::* MethodInfo<T,Ret,Args...>::ptr)(Args...) = nullptr;
+template<typename Class>
+class JsBinder {
+public:
+    template<typename FieldType>
+    using FieldGetter = std::function<FieldType (Class *instance)>;
 
+    template<typename FieldType>
+    using FieldSetter = std::function<void (Class *instance, FieldType value)>;
 
-template<typename T, typename Ret, typename... Args, size_t... I>
-JSValue call_method_impl(
-    JSContext* ctx,
-    T* obj,
-    JSValueConst* argv,
-    std::index_sequence<I...>)
-{
-    if constexpr (std::is_void_v<Ret>) {
-        (obj->*MethodInfo<T,Ret,Args...>::ptr)(
-            JSConverter<Args>::fromJS(ctx, argv[I])...
-        );
-        return JS_UNDEFINED;
-    } else {
-        Ret r = (obj->*MethodInfo<T,Ret,Args...>::ptr)(
-            JSConverter<Args>::fromJS(ctx, argv[I])...
-        );
-        return JSConverter<Ret>::toJS(ctx, r);
-    }
-}
+    /// 注册一个字段（在 wrap() 时快照为字符串属性）
+    /// 注册字段：getter + setter
+    template<typename FieldType>
+    static void addField(const std::string &name,
+                         FieldGetter<FieldType> getter,
+                         FieldSetter<FieldType> setter) {
+        FieldBase base;
+        base.name = name;
 
-// 包装器：必须为静态函数
-template<typename T, typename Ret, typename... Args>
-static JSValue js_method_call(
-    JSContext* ctx,
-    JSValueConst this_val,
-    int argc,
-    JSValueConst* argv)
-{
-    T* obj = static_cast<T*>(JS_GetOpaque2(ctx, this_val, ClassInfo<T>::classId));
-    return call_method_impl<T, Ret, Args...>(
-        ctx, obj, argv, std::index_sequence_for<Args...>{}
-    );
-}
-
-template<typename T, typename Ret, typename... Args>
-void bind_method(JSContext* ctx, JSValue proto,
-                 const char* name,
-                 Ret(T::*func)(Args...))
-{
-    MethodInfo<T,Ret,Args...>::ptr = func;
-
-    JS_SetPropertyStr(
-        ctx,
-        proto,
-        name,
-        JS_NewCFunction(ctx,
-            js_method_call<T,Ret,Args...>,
-            name,
-            sizeof...(Args))
-    );
-}
-
-
-// =======================================================
-// 绑定入口 DSL
-// =======================================================
-
-struct JSCBinding {
-    JSContext* ctx;
-
-    explicit JSCBinding(JSContext* c) : ctx(c) {}
-
-    template<typename T>
-    static JSCBinding class_(JSContext* ctx, const char* name)
-    {
-        JS_NewClassID(&ClassInfo<T>::classId);
-
-        JSClassDef def{};
-        def.class_name = name;
-        def.finalizer = [](JSRuntime* rt, JSValue val){
-            T* obj = static_cast<T*>(JS_GetOpaque(val, ClassInfo<T>::classId));
-            delete obj;
+        // getter 封装成统一类型（返回 JSValue）
+        base.getter = [getter](JSContext *ctx, Class *obj) -> JSValue {
+            FieldType v = getter(obj);
+            return JSConverter<FieldType>::toJS(ctx, v);
         };
 
-        JS_NewClass(JS_GetRuntime(ctx), ClassInfo<T>::classId, &def);
+        // setter 封装（从 JSValue 转成 FieldType）
+        base.setter = [setter](JSContext *ctx, Class *obj, JSValueConst jsVal) {
+            FieldType native{};
+            native = JSConverter<FieldType>::fromJS(ctx, jsVal);
+            setter(obj, native);
+        };
 
-        ClassInfo<T>::proto = JS_NewObject(ctx);
-        JS_SetClassProto(ctx, ClassInfo<T>::classId, ClassInfo<T>::proto);
-
-        return JSCBinding(ctx);
+        s_fields.push_back(std::move(base));
     }
 
-    template<typename T, typename Field>
-    JSCBinding& field(const char* name, Field T::* field)
-    {
-        bind_field<T,Field>(ctx, ClassInfo<T>::proto, name, field);
-        return *this;
+    /// 把原生对象包装成 JS 对象（**不负责释放 Class* 的生命周期**）
+    static JSValue wrap(JSContext *ctx, Class *instance) {
+        JSRuntime *rt = JS_GetRuntime(ctx);
+        ensureClassInit(rt);
+
+        const JSValue obj = JS_NewObjectClass(ctx, s_classId);
+        if (JS_IsException(obj)) {
+            return obj;
+        }
+
+        // 只保存指针，不负责 delete
+        JS_SetOpaque(obj, instance);
+
+        // 设置字段（快照）
+        for (const auto &f : s_fields) {
+            JSValue v = f.getter(ctx, instance);
+            JS_SetPropertyStr(ctx, obj,f.name.c_str(), v);
+        }
+
+        return obj;
     }
 
-    template<typename T, typename Ret, typename... Args>
-    JSCBinding& method(const char* name, Ret(T::*func)(Args...))
-    {
-        bind_method<T,Ret,Args...>(ctx, ClassInfo<T>::proto, name, func);
-        return *this;
+    /// 设置类名，仅用于调试/错误信息
+    static void setClassName(const std::string &name);
+
+private:
+    struct FieldBase {
+        std::string name;
+        std::function<JSValue(JSContext *, Class *)> getter;
+        std::function<void(JSContext *, Class *, JSValueConst)> setter;
+    };
+
+    // 确保Class已经被注册了
+    static void ensureClassInit(JSRuntime *rt) {
+        if (s_inited)
+            return;
+
+        JS_NewClassID(&s_classId); // 申请一个新的class_id，保证唯一，用于区分不同的class
+
+        JSClassDef def{};
+        def.class_name = s_className.c_str();
+
+        if (JS_NewClass(rt, s_classId, &def) < 0) {
+            // 这里抛异常比静默失败要好
+            throw std::runtime_error("JS_NewClass failed for " + s_className);
+        }
+
+        s_inited = true;
     }
+
+private:
+    static inline JSClassID s_classId{0};
+    static inline bool s_inited{false};
+    static inline std::string s_className{"NativeObject"};
+    static inline std::vector<FieldBase> s_fields{};
 };

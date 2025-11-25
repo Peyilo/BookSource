@@ -6,11 +6,6 @@ void JsBinder<T>::addField(const std::string &name, FieldGetter getter) {
 }
 
 template<typename T>
-void JsBinder<T>::addMethod(const std::string &name, MethodFunc func) {
-    s_methods.push_back(Method{name, std::move(func)});
-}
-
-template<typename T>
 void JsBinder<T>::setClassName(const std::string &name) {
     s_className = name;
 }

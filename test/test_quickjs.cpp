@@ -7,7 +7,6 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#include <booksource/bind.h>
 
 /**
  * @param filename 文件路径
@@ -33,7 +32,7 @@ void test_complex_js(QuickJsEngine &engine) {
 #ifdef WIN32
     const std::string filename = R"(D:\Code\Clion\booksource\test\complex_test.js)";
 #else
-    const std::string filename = R"()";
+    const std::string filename = R"(/Users/Peyilo/Development/Code/Clion/booksource/test/complex_test.js)";
 #endif
     const std::string script = load_js_file(filename);
     if (script.empty()) {
@@ -82,58 +81,11 @@ void add_print(JSContext* ctx) {
     JS_FreeValue(ctx, global);
 }
 
-struct Player {
-    int hp;
-    std::string name;
-
-    Player(int h, const std::string& n) : hp(h), name(n) {}
-
-    void move(int x, int y) { std::cout << "Move " << x << ", " << y << std::endl; }
-    int attack(const std::string& who) { return 999; }
-};
-
-void test_bind(QuickJsEngine &engine) {
-    const auto ctx = engine.getContext();
-    JSCBinding::class_<Player>(ctx, "Player")
-        .field("hp", &Player::hp)
-        .field("name", &Player::name)
-        .method("move", &Player::move)
-        .method("attack", &Player::attack);
-
-
-    // JS 测试脚本
-    const char* script = R"(
-        print("=== Player Bind Test ===");
-
-        let p = new Player(100, "Tom");
-
-        print("hp =", p.hp);
-        print("name =", p.name);
-
-        p.hp = 555;
-        print("updated hp =", p.hp);
-
-        // 调用方法
-        p.move(10, 20);
-
-        let result = p.attack("orc");
-        print("attack result =", result);
-
-        print("=== Test End ===");
-    )";
-
-    // 执行脚本
-    const auto res = engine.eval(script);
-    std::cout << "[Result] " << res << std::endl;
-}
 
 int main() {
     QuickJsEngine engine;
-    // add_print(engine.getContext());
-    // test_complex_js(engine);
-    engine.reset();
     add_print(engine.getContext());
-    test_bind(engine);
-
+    test_complex_js(engine);
+    engine.reset();
     return 0;
 }
