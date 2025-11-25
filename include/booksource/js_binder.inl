@@ -1,8 +1,5 @@
 #pragma once
 
-#include <cassert>
-#include "js_binder.h"
-
 template<typename T>
 void JsBinder<T>::addField(const std::string &name, FieldGetter getter) {
     s_fields.push_back(Field{name, std::move(getter)});
@@ -23,7 +20,7 @@ void JsBinder<T>::ensureClassInit(JSRuntime *rt) {
     if (s_inited)
         return;
 
-    JS_NewClassID(&s_classId);
+    JS_NewClassID(&s_classId);      // 申请一个新的class_id，保证唯一，用于区分不同的class
 
     JSClassDef def{};
     def.class_name = s_className.c_str();
@@ -42,7 +39,7 @@ JSValue JsBinder<T>::wrap(JSContext *ctx, T *instance) {
     JSRuntime *rt = JS_GetRuntime(ctx);
     ensureClassInit(rt);
 
-    JSValue obj = JS_NewObjectClass(ctx, s_classId);
+    const JSValue obj = JS_NewObjectClass(ctx, s_classId);
     if (JS_IsException(obj)) {
         return obj;
     }

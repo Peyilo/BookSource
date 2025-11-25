@@ -1,6 +1,6 @@
 #pragma once
 
-#include <functional>
+#include <stdexcept>
 #include <quickjs/quickjs.h>
 #include <string>
 #include <booksource/js_binder.h>
@@ -36,7 +36,6 @@ public:
         }
 
         JS_SetPropertyStr(context, global, name.c_str(), obj);
-
         JS_FreeValue(context, global);
     }
 

@@ -18,3 +18,11 @@ target_compile_definitions(quickjs PRIVATE
 )
 
 target_include_directories(quickjs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+if (WIN32)
+    target_link_libraries(quickjs
+            PRIVATE
+            pthread
+            winmm
+    )
+endif()

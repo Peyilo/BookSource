@@ -4,7 +4,6 @@
 #include <functional>
 #include <string>
 #include <vector>
-#include <unordered_map>
 
 /**
  * 通用绑定器：
