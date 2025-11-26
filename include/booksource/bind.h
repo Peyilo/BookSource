@@ -1,308 +1,182 @@
 #pragma once
-#include <quickjs/quickjs.h>
-#include <string>
-#include <functional>
-#include <vector>
 
-template<typename T>
-struct JSConverter;
+#include <booksource/booksource.h>
+#include <booksource/engine.h>
 
-template<typename T>
-struct MethodTraits;
 
-template<typename T>
-struct FieldTraits;
+namespace BindingMacros {
 
-template<typename T>
-class JsBinder;
+#define BEGIN_CLASS_BINDING(T) \
+void init##T##ClassInfo() { \
+JsBinder<T>::setClassName(#T);
+#define FIELD(T, field) JsBinder<T>::addField(#field, &T::field);
+#define METHOD(T, func) JsBinder<T>::addMethod(#func, &T::func);
 
-// int
-template<>
-struct JSConverter<int> {
-    static int fromJS(JSContext *ctx, JSValueConst v) {
-        int32_t out;
-        JS_ToInt32(ctx, &out, v);
-        return out;
+#define END_CLASS_BINDING() }
+
+} // namespace Binding
+
+namespace BookSourceBinding {
+
+    using namespace BindingMacros;
+
+    void initBookInfoRuleClassInfo();
+
+    void initBookListRuleClassInfo();
+
+    void initContentRuleClassInfo();
+
+    void initExploreRuleClassInfo();
+
+    void initReviewRuleClassInfo();
+
+    void initSearchRuleClassInfo();
+
+    void initTocRuleClassInfo();
+
+    void initBookSourceClassInfo();
+
+    inline void initEngineClassInfo() {
+        initBookInfoRuleClassInfo();
+        initBookListRuleClassInfo();
+        initContentRuleClassInfo();
+        initExploreRuleClassInfo();
+        initReviewRuleClassInfo();
+        initSearchRuleClassInfo();
+        initTocRuleClassInfo();
+        initBookSourceClassInfo();
     }
 
-    static JSValue toJS(JSContext *ctx, int v) { return JS_NewInt32(ctx, v); }
-};
+BEGIN_CLASS_BINDING(BookInfoRule)
+    FIELD(BookInfoRule, init)
+    FIELD(BookInfoRule, name)
+    FIELD(BookInfoRule, author)
+    FIELD(BookInfoRule, intro)
+    FIELD(BookInfoRule, kind)
+    FIELD(BookInfoRule, lastChapter)
+    FIELD(BookInfoRule, updateTime)
+    FIELD(BookInfoRule, coverUrl)
+    FIELD(BookInfoRule, tocUrl)
+    FIELD(BookInfoRule, wordCount)
+    FIELD(BookInfoRule, canReName)
+    FIELD(BookInfoRule, downloadUrls)
+END_CLASS_BINDING()
 
-// double
-template<>
-struct JSConverter<double> {
-    static double fromJS(JSContext *ctx, JSValueConst v) {
-        double out;
-        JS_ToFloat64(ctx, &out, v);
-        return out;
+BEGIN_CLASS_BINDING(BookListRule)
+    FIELD(BookListRule, bookList)
+    FIELD(BookListRule, name)
+    FIELD(BookListRule, author)
+    FIELD(BookListRule, intro)
+    FIELD(BookListRule, kind)
+    FIELD(BookListRule, lastChapter)
+    FIELD(BookListRule, updateTime)
+    FIELD(BookListRule, bookUrl)
+    FIELD(BookListRule, coverUrl)
+    FIELD(BookListRule, wordCount)
+END_CLASS_BINDING()
+
+BEGIN_CLASS_BINDING(ContentRule)
+    FIELD(ContentRule, content)
+    FIELD(ContentRule, title)
+    FIELD(ContentRule, nextContentUrl)
+    FIELD(ContentRule, webJs)
+    FIELD(ContentRule, sourceRegex)
+    FIELD(ContentRule, replaceRegex)
+    FIELD(ContentRule, imageStyle)
+    FIELD(ContentRule, imageDecode)
+    FIELD(ContentRule, payAction)
+END_CLASS_BINDING()
+
+BEGIN_CLASS_BINDING(ExploreRule)
+    FIELD(ExploreRule, bookList)
+    FIELD(ExploreRule, name)
+    FIELD(ExploreRule, author)
+    FIELD(ExploreRule, intro)
+    FIELD(ExploreRule, kind)
+    FIELD(ExploreRule, lastChapter)
+    FIELD(ExploreRule, updateTime)
+    FIELD(ExploreRule, bookUrl)
+    FIELD(ExploreRule, coverUrl)
+    FIELD(ExploreRule, wordCount)
+END_CLASS_BINDING()
+
+BEGIN_CLASS_BINDING(ReviewRule)
+    FIELD(ReviewRule, reviewUrl)
+    FIELD(ReviewRule, avatarRule)
+    FIELD(ReviewRule, contentRule)
+    FIELD(ReviewRule, postTimeRule)
+    FIELD(ReviewRule, reviewQuoteUrl)
+    FIELD(ReviewRule, voteUpUrl)
+    FIELD(ReviewRule, voteDownUrl)
+    FIELD(ReviewRule, postReviewUrl)
+    FIELD(ReviewRule, postQuoteUrl)
+    FIELD(ReviewRule, deleteUrl)
+END_CLASS_BINDING()
+
+BEGIN_CLASS_BINDING(SearchRule)
+    FIELD(SearchRule, bookList)
+    FIELD(SearchRule, name)
+    FIELD(SearchRule, author)
+    FIELD(SearchRule, intro)
+    FIELD(SearchRule, kind)
+    FIELD(SearchRule, lastChapter)
+    FIELD(SearchRule, updateTime)
+    FIELD(SearchRule, bookUrl)
+    FIELD(SearchRule, coverUrl)
+    FIELD(SearchRule, wordCount)
+    FIELD(SearchRule, checkKeyWord)
+END_CLASS_BINDING()
+
+BEGIN_CLASS_BINDING(TocRule)
+    FIELD(TocRule, preUpdateJs)
+    FIELD(TocRule, chapterList)
+    FIELD(TocRule, chapterName)
+    FIELD(TocRule, chapterUrl)
+    FIELD(TocRule, formatJs)
+    FIELD(TocRule, isVolume)
+    FIELD(TocRule, isVip)
+    FIELD(TocRule, isPay)
+    FIELD(TocRule, updateTime)
+    FIELD(TocRule, nextTocUrl)
+END_CLASS_BINDING()
+
+BEGIN_CLASS_BINDING(BookSource)
+    FIELD(BookSource, bookSourceUrl)
+    FIELD(BookSource, bookSourceName)
+    FIELD(BookSource, bookSourceGroup)
+    FIELD(BookSource, bookSourceType)
+    FIELD(BookSource, bookUrlPattern)
+    FIELD(BookSource, customOrder)
+    FIELD(BookSource, enabled)
+    FIELD(BookSource, enabledExplore)
+    FIELD(BookSource, jsLib)
+    FIELD(BookSource, enabledCookieJar)
+    FIELD(BookSource, concurrentRate)
+    FIELD(BookSource, header)
+    FIELD(BookSource, loginUrl)
+    FIELD(BookSource, loginUi)
+    FIELD(BookSource, loginCheckJs)
+    FIELD(BookSource, coverDecodeJs)
+    FIELD(BookSource, bookSourceComment)
+    FIELD(BookSource, variableComment)
+    FIELD(BookSource, lastUpdateTime)
+    FIELD(BookSource, respondTime)
+    FIELD(BookSource, weight)
+    FIELD(BookSource, exploreUrl)
+    FIELD(BookSource, exploreScreen)
+    FIELD(BookSource, ruleExplore)
+    FIELD(BookSource, searchUrl)
+    FIELD(BookSource, ruleSearch)
+    FIELD(BookSource, ruleBookInfo)
+    FIELD(BookSource, ruleToc)
+    FIELD(BookSource, ruleContent)
+    FIELD(BookSource, ruleReview)
+END_CLASS_BINDING()
+
+} // namespace BookSourceBinding
+
+namespace Binding {
+    inline void initEngineClassInfo() {
+        BookSourceBinding::initEngineClassInfo();
     }
-
-    static JSValue toJS(JSContext *ctx, double v) { return JS_NewFloat64(ctx, v); }
-};
-
-// bool
-template<>
-struct JSConverter<bool> {
-    static bool fromJS(JSContext *ctx, JSValueConst v) {
-        return JS_ToBool(ctx, v) == 1;
-    }
-
-    static JSValue toJS(JSContext *ctx, bool v) { return JS_NewBool(ctx, v); }
-};
-
-// std::string
-template<>
-struct JSConverter<std::string> {
-    static std::string fromJS(JSContext *ctx, JSValueConst v) {
-        const char *s = JS_ToCString(ctx, v);
-        std::string out = s ? s : "";
-        JS_FreeCString(ctx, s);
-        return out;
-    }
-
-    static JSValue toJS(JSContext *ctx, const std::string &v) {
-        return JS_NewString(ctx, v.c_str());
-    }
-};
-
-template<typename U>
-struct JSConverter<U*> {
-    static U* fromJS(JSContext *ctx, JSValueConst v) {
-        return static_cast<U*>(JS_GetOpaque2(ctx, v, JsBinder<U>::getClassID()));
-    }
-
-    static JSValue toJS(JSContext *ctx, U* ptr) {
-        return JsBinder<U>::wrap(ctx, ptr);
-    }
-};
-
-template<typename U>
-struct JSConverter {
-    static U fromJS(JSContext *ctx, JSValueConst v) {
-        return *static_cast<U*>(JS_GetOpaque2(ctx, v, JsBinder<U>::getClassID()));
-    }
-
-    static JSValue toJS(JSContext *ctx, U* ptr) {
-        return JsBinder<U>::wrap(ctx, ptr);
-    }
-};
-
-// 支持 const T& / T& / const T
-template<typename T>
-struct JSConverter<const T &> : JSConverter<T> {
-};
-
-template<typename T>
-struct JSConverter<T &> : JSConverter<T> {
-};
-
-template<typename T>
-struct JSConverter<const T> : JSConverter<T> {
-};
-
-// 非 const
-template<typename C, typename Ret, typename... Args>
-struct MethodTraits<Ret (C::*)(Args...)> {
-    using Class = C;
-    using Return = Ret;
-    using ArgsTuple = std::tuple<Args...>;
-    static constexpr bool isConst = false;
-};
-
-// const 版本
-template<typename C, typename Ret, typename... Args>
-struct MethodTraits<Ret (C::*)(Args...) const> {
-    using Class = C;
-    using Return = Ret;
-    using ArgsTuple = std::tuple<Args...>;
-    static constexpr bool isConst = true;
-};
-
-template<typename C, typename FieldType>
-struct FieldTraits<FieldType C::*> {
-    using Class = C;
-    using Type = FieldType;
-};
-
-template<typename T>
-class JsBinder {
-public:
-    template<typename FieldPtr>
-    static void addField(const std::string &name, FieldPtr ptr) {
-        using Traits = FieldTraits<FieldPtr>;
-        using FieldType = Traits::Type;
-
-        FieldBase base;
-        base.name = name;
-
-        // getter
-        base.getter = [ptr](JSContext *ctx, T *obj) -> JSValue {
-            return JSConverter<FieldType>::toJS(ctx, obj->*ptr);
-        };
-
-        // setter
-        base.setter = [ptr](JSContext *ctx, T *obj, JSValueConst jsVal) {
-            obj->*ptr = JSConverter<FieldType>::fromJS(ctx, jsVal);
-        };
-
-        s_fields.push_back(std::move(base));
-    }
-
-    template<typename Method>
-    static void addMethod(const std::string &name, Method m) {
-        using Traits = MethodTraits<Method>;
-        using Return = Traits::Return;
-        using ArgsTuple = Traits::ArgsTuple;
-
-        MethodBase base;
-        base.name = name;
-
-        base.invoker = [m](JSContext *ctx, T *obj, int argc, JSValueConst *argv) -> JSValue {
-            return callMethod<Return>(ctx, obj, m, argv, std::make_index_sequence<std::tuple_size_v<ArgsTuple> >{});
-        };
-
-        s_methods.push_back(std::move(base));
-    }
-
-    /// 把原生对象包装成 JS 对象（**不负责释放 Class* 的生命周期**）
-    static JSValue bind(JSContext *ctx, T *instance) {
-        ensureClassInit(ctx);
-
-        const JSValue obj = JS_NewObjectClass(ctx, s_classId);
-        if (JS_IsException(obj)) {
-            return obj;
-        }
-
-        // 只保存指针，不负责 delete
-        JS_SetOpaque(obj, instance);
-
-        return obj;
-    }
-
-    /// 设置类名，仅用于调试/错误信息
-    static void setClassName(const std::string &name) {
-        s_className = name;
-    }
-
-    static JSClassID getClassID() {
-        return s_classId;
-    }
-
-private:
-    struct FieldBase {
-        std::string name;
-        std::function<JSValue(JSContext *, T *)> getter;
-        std::function<void(JSContext *, T *, JSValueConst)> setter;
-    };
-
-    struct MethodBase {
-        std::string name;
-        std::function<JSValue(JSContext *, T *, int, JSValueConst *)> invoker;
-    };
-
-    // 确保Class已经被注册了
-    static void ensureClassInit(JSContext *ctx) {
-        JSRuntime *rt = JS_GetRuntime(ctx);
-        if (s_inited)
-            return;
-
-        JS_NewClassID(&s_classId); // 申请一个新的class_id，保证唯一，用于区分不同的class
-
-        JSClassDef def{};
-        def.class_name = s_className.c_str();
-
-        if (JS_NewClass(rt, s_classId, &def) < 0) {
-            // 这里抛异常比静默失败要好
-            throw std::runtime_error("JS_NewClass failed for " + s_className);
-        }
-
-        build(ctx);
-
-        s_inited = true;
-    }
-
-    template<typename Return, typename Method, size_t... I>
-    static JSValue callMethod(JSContext *ctx, T *obj,
-                              Method m,
-                              JSValueConst *argv,
-                              std::index_sequence<I...>) {
-        using Traits = MethodTraits<Method>;
-        using ArgsTuple = Traits::ArgsTuple;
-
-        // 参数类型解包
-        auto nativeRet = (obj->*m)(
-            JSConverter<std::tuple_element_t<I, ArgsTuple> >::fromJS(ctx, argv[I])...
-        );
-
-        if constexpr (std::is_same_v<Return, void>) {
-            return JS_UNDEFINED;
-        } else {
-            return JSConverter<Return>::toJS(ctx, nativeRet);
-        }
-    }
-
-
-    static JSValue methodDispatcher(JSContext *ctx,
-                                    JSValueConst this_val, int argc, JSValueConst *argv, int magic) {
-        auto *obj = static_cast<T *>(JS_GetOpaque2(ctx, this_val, s_classId));
-        if (!obj) return JS_ThrowTypeError(ctx, "Invalid native object");
-        return s_methods[magic].invoker(ctx, obj, argc, argv);
-    }
-
-    static void build(JSContext *ctx) {
-        const JSValue proto = JS_NewObject(ctx);
-
-        for (int i = 0; i < s_fields.size(); i++) {
-            const auto &f = s_fields[i];
-
-            JSAtom atom = JS_NewAtom(ctx, f.name.c_str());
-
-            JS_DefinePropertyGetSet(
-                ctx,
-                proto,
-                atom,
-                JS_NewCFunctionMagic(ctx, getterDispatcher, f.name.c_str(), 0, JS_CFUNC_generic_magic, i),
-                JS_NewCFunctionMagic(ctx, setterDispatcher, f.name.c_str(), 1, JS_CFUNC_generic_magic, i),
-                JS_PROP_ENUMERABLE | JS_PROP_CONFIGURABLE
-            );
-
-            JS_FreeAtom(ctx, atom);
-        }
-
-        // 方法绑定（无需 magic index 变更）
-        for (int i = 0; i < s_methods.size(); i++) {
-            JS_SetPropertyStr(
-                ctx,
-                proto,
-                s_methods[i].name.c_str(),
-                JS_NewCFunctionMagic(ctx, &methodDispatcher, s_methods[i].name.c_str(),
-                                     0, JS_CFUNC_generic_magic, i)
-            );
-        }
-
-        JS_SetClassProto(ctx, s_classId, proto);
-    }
-
-    static JSValue getterDispatcher(JSContext *ctx, JSValueConst this_val,
-                                    int argc, JSValueConst *argv, int magic) {
-        auto *obj = static_cast<T *>(JS_GetOpaque2(ctx, this_val, s_classId));
-        if (!obj) return JS_ThrowTypeError(ctx, "Invalid native object");
-        return s_fields[magic].getter(ctx, obj);
-    }
-
-    static JSValue setterDispatcher(JSContext *ctx, JSValueConst this_val,
-                                    int argc, JSValueConst *argv, int magic) {
-        auto *obj = static_cast<T *>(JS_GetOpaque2(ctx, this_val, s_classId));
-        if (!obj) return JS_ThrowTypeError(ctx, "Invalid native object");
-        s_fields[magic].setter(ctx, obj, argv[0]);
-        return JS_UNDEFINED;
-    }
-
-private:
-    static inline JSClassID s_classId{0};
-    static inline bool s_inited{false};
-    static inline std::string s_className{"NativeObject"};
-    static inline std::vector<FieldBase> s_fields{};
-    static inline std::vector<MethodBase> s_methods{};
-};
-
+}

@@ -40,6 +40,10 @@ QuickJsEngine::~QuickJsEngine() {
         if (const auto it = s_engineRegistry.find(engineID); it != s_engineRegistry.end())
             s_engineRegistry.erase(it);
     }
+    // 清空全部指针
+    boundPtrTable.clear();
+    nameToPtrIndex.clear();
+    nextPtrTableId = 0;
     if (context) JS_FreeContext(context);
     if (runtime) JS_FreeRuntime(runtime);
 }
@@ -102,10 +106,15 @@ void QuickJsEngine::reset() {
         throw std::runtime_error("Failed to recreate JSContext during reset()");
     }
 
+    // 给新的Context设置engineID
     JS_SetContextOpaque(
         context,
         reinterpret_cast<void*>(static_cast<uintptr_t>(engineID))
     );
+    // 清空全部指针
+    boundPtrTable.clear();
+    nameToPtrIndex.clear();
+    nextPtrTableId = 0;
 }
 
 void QuickJsEngine::addValue(const std::string &name, const std::string &value) const {
@@ -180,6 +189,7 @@ void QuickJsEngine::deleteValue(const std::string &name) {
     JS_FreeAtom(context, atom);
     JS_FreeValue(context, global);
 
+    // 只有addValueBinding()添加的变量才有指针
     if (const auto it = nameToPtrIndex.find(name); it != nameToPtrIndex.end()) {
         const int id = it->second;
         boundPtrTable.erase(id);      // 清除指针

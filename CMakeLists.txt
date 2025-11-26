@@ -16,8 +16,7 @@ file(GLOB_RECURSE INCLUDE_FILES
         "${CMAKE_CURRENT_SOURCE_DIR}/include/booksource/*.h"
 )
 
-add_library(booksource ${SRC_FILES} ${INCLUDE_FILES}
-        include/booksource/bind.h)
+add_library(booksource ${SRC_FILES} ${INCLUDE_FILES})
 
 # js引擎: quickjs
 target_link_libraries(booksource PUBLIC quickjs)

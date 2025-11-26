@@ -4,9 +4,12 @@
 #include <booksource/bind.h>
 #include <cassert>
 
+struct Metainfo {};
+
 struct Book {
     std::string name;
     std::string author;
+    Metainfo metainfo;
 
     std::string info() const {
         return name + " / " + author;
@@ -25,6 +28,7 @@ void initBookClassInfo() {
     JsBinder<Book>::setClassName("Book");
     JsBinder<Book>::addField("name", &Book::name);
     JsBinder<Book>::addField("author", &Book::author);
+    JsBinder<Book>::addField("metainfo", &Book::metainfo);
     JsBinder<Book>::addMethod("info", &Book::info);
     JsBinder<Book>::addMethod("test", &Book::test);
 }
@@ -37,6 +41,7 @@ void exeJs(const QuickJsEngine &engine, const std::string &code) {
 int main() {
     QuickJsEngine engine;
     initBookClassInfo();
+    Binding::initEngineClassInfo();
 
     Book book{"first book", "first author"};
     Book book2{"second book", "second author"};
@@ -68,7 +73,9 @@ int main() {
     std::cout << "num: " << num << std::endl;
     num = 789;
     engine.deleteValue("num");
-    exeJs(engine, "num;");
+    try {
+        exeJs(engine, "num;");
+    } catch (const std::exception &e) {}
 
     return 0;
 }
