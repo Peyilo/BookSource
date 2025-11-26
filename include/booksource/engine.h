@@ -5,6 +5,8 @@
 #include <string>
 #include <functional>
 #include <vector>
+#include <stdexcept>
+#include <atomic>
 
 template<typename T>
 struct JSConverter;

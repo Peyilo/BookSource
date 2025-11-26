@@ -2,7 +2,6 @@
 #include <string>
 #include <booksource/engine.h>
 #include <booksource/bind.h>
-#include <booksource/booksource.h>
 #include <booksource/booksource_parser.h>
 #include <cassert>
 #include <fstream>
@@ -96,7 +95,7 @@ int main() {
         exeJs(engine, "num;");
     } catch (const std::exception &e) {}
 
-    std::string bsFile = std::string(CMAKE_CURRENT_SOURCE_DIR) + "/resource/booksources.json";
+    std::string bsFile = std::string(CMAKE_CURRENT_SOURCE_DIR) + "/resource/bs1.json";
     auto json = load_file(bsFile);
     auto bookSources = BookSourceParser::parseBookSourceList(json);
     auto source = bookSources[0];

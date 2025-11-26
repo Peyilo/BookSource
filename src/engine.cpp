@@ -1,5 +1,6 @@
 #include <booksource/engine.h>
 #include <iostream>
+#include <mutex>
 
 // 定义静态成员
 std::atomic<int> QuickJsEngine::s_nextEngineId{1};

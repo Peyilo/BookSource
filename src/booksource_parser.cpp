@@ -4,133 +4,264 @@
 
 using json = nlohmann::json;
 
+static void debugPrint(std::string msg) {}
+
 static void parse(const json &j, BookInfoRule &o) {
-    o.init = j.value("init", "");
-    o.name = j.value("name", "");
-    o.author = j.value("author", "");
-    o.intro = j.value("intro", "");
-    o.kind = j.value("kind", "");
-    o.lastChapter = j.value("lastChapter", "");
-    o.updateTime = j.value("updateTime", "");
-    o.coverUrl = j.value("coverUrl", "");
-    o.tocUrl = j.value("tocUrl", "");
-    o.wordCount = j.value("wordCount", "");
-    o.canReName = j.value("canReName", "");
-    o.downloadUrls = j.value("downloadUrls", "");
+    // Sometimes BookInfoRule is an array → ignore
+    if (!j.is_object()) {
+        debugPrint("Warning: BookInfoRule expects an object but got a non-object. Skipped.\n");
+        return;
+    }
+
+    for (auto& [key, value] : j.items()) {
+
+        if (key == "init")              o.init = value.get<std::string>();
+        else if (key == "name")         o.name = value.get<std::string>();
+        else if (key == "author")       o.author = value.get<std::string>();
+        else if (key == "intro")        o.intro = value.get<std::string>();
+        else if (key == "kind")         o.kind = value.get<std::string>();
+        else if (key == "lastChapter")  o.lastChapter = value.get<std::string>();
+        else if (key == "updateTime")   o.updateTime = value.get<std::string>();
+        else if (key == "coverUrl")     o.coverUrl = value.get<std::string>();
+        else if (key == "tocUrl")       o.tocUrl = value.get<std::string>();
+        else if (key == "wordCount")    o.wordCount = value.get<std::string>();
+        else if (key == "canReName")    o.canReName = value.get<std::string>();
+        else if (key == "downloadUrls") o.downloadUrls = value.get<std::string>();
+
+        else {
+            std::string keyName ="BookInfoRule." + key;
+            debugPrint("Warning: Unknown field \"" + keyName + "\". Ignored.\n");
+        }
+    }
 }
 
+
 static void parse(const json &j, BookListRule &o) {
-    o.bookList = j.value("bookList", "");
-    o.name = j.value("name", "");
-    o.author = j.value("author", "");
-    o.intro = j.value("intro", "");
-    o.kind = j.value("kind", "");
-    o.lastChapter = j.value("lastChapter", "");
-    o.updateTime = j.value("updateTime", "");
-    o.bookUrl = j.value("bookUrl", "");
-    o.coverUrl = j.value("coverUrl", "");
-    o.wordCount = j.value("wordCount", "");
+    for (auto& [key, value] : j.items()) {
+
+        if (key == "bookList")        o.bookList = value.get<std::string>();
+        else if (key == "name")       o.name = value.get<std::string>();
+        else if (key == "author")     o.author = value.get<std::string>();
+        else if (key == "intro")      o.intro = value.get<std::string>();
+        else if (key == "kind")       o.kind = value.get<std::string>();
+        else if (key == "lastChapter")o.lastChapter = value.get<std::string>();
+        else if (key == "updateTime") o.updateTime = value.get<std::string>();
+        else if (key == "bookUrl")    o.bookUrl = value.get<std::string>();
+        else if (key == "coverUrl")   o.coverUrl = value.get<std::string>();
+        else if (key == "wordCount")  o.wordCount = value.get<std::string>();
+
+        else {
+            std::string keyName = "BookListRule." + key;
+            debugPrint("Warning: Unknown field \"" + keyName + "\". Ignored.\n");
+        }
+    }
 }
 
 static void parse(const json &j, ExploreRule &o) {
-    parse(j, static_cast<BookListRule &>(o));
+    for (auto& [key, value] : j.items()) {
+
+        if (key == "bookList")        o.bookList = value.get<std::string>();
+        else if (key == "name")       o.name = value.get<std::string>();
+        else if (key == "author")     o.author = value.get<std::string>();
+        else if (key == "intro")      o.intro = value.get<std::string>();
+        else if (key == "kind")       o.kind = value.get<std::string>();
+        else if (key == "lastChapter")o.lastChapter = value.get<std::string>();
+        else if (key == "updateTime") o.updateTime = value.get<std::string>();
+        else if (key == "bookUrl")    o.bookUrl = value.get<std::string>();
+        else if (key == "coverUrl")   o.coverUrl = value.get<std::string>();
+        else if (key == "wordCount")  o.wordCount = value.get<std::string>();
+
+        else {
+            std::string keyName = "ExploreRule." + key;
+            debugPrint("Warning: Unknown field \"" + keyName + "\". Ignored.\n");
+        }
+    }
 }
 
 static void parse(const json &j, SearchRule &o) {
-    parse(j, static_cast<BookListRule &>(o));
-    o.checkKeyWord = j.value("checkKeyWord", "");
+    for (auto& [key, value] : j.items()) {
+
+        if (key == "bookList")          o.bookList = value.get<std::string>();
+        else if (key == "name")         o.name = value.get<std::string>();
+        else if (key == "author")       o.author = value.get<std::string>();
+        else if (key == "intro")        o.intro = value.get<std::string>();
+        else if (key == "kind")         o.kind = value.get<std::string>();
+        else if (key == "lastChapter")  o.lastChapter = value.get<std::string>();
+        else if (key == "updateTime")   o.updateTime = value.get<std::string>();
+        else if (key == "bookUrl")      o.bookUrl = value.get<std::string>();
+        else if (key == "coverUrl")     o.coverUrl = value.get<std::string>();
+        else if (key == "wordCount")    o.wordCount = value.get<std::string>();
+        else if (key == "checkKeyWord") o.checkKeyWord = value.get<std::string>();
+
+        else {
+            std::string keyName = "SearchRule." + key;
+            debugPrint("Warning: Unknown field \"" + keyName + "\". Ignored.\n");
+        }
+    }
 }
+
 
 static void parse(const json &j, ContentRule &o) {
-    o.content = j.value("content", "");
-    o.title = j.value("title", "");
-    o.nextContentUrl = j.value("nextContentUrl", "");
-    o.webJs = j.value("webJs", "");
-    o.sourceRegex = j.value("sourceRegex", "");
-    o.replaceRegex = j.value("replaceRegex", "");
-    o.imageStyle = j.value("imageStyle", "");
-    o.imageDecode = j.value("imageDecode", "");
-    o.payAction = j.value("payAction", "");
+    if (!j.is_object()) return;
+
+    for (auto& [key, value] : j.items()) {
+
+        if (key == "content")        o.content = value.get<std::string>();
+        else if (key == "title")     o.title = value.get<std::string>();
+        else if (key == "nextContentUrl") o.nextContentUrl = value.get<std::string>();
+        else if (key == "webJs")     o.webJs = value.get<std::string>();
+        else if (key == "sourceRegex") o.sourceRegex = value.get<std::string>();
+        else if (key == "replaceRegex") o.replaceRegex = value.get<std::string>();
+        else if (key == "imageStyle") o.imageStyle = value.get<std::string>();
+        else if (key == "imageDecode") o.imageDecode = value.get<std::string>();
+        else if (key == "payAction")  o.payAction = value.get<std::string>();
+
+        else {
+            std::string keyName = "ContentRule." + key;
+            debugPrint("Warning: Unknown field \"" + keyName + "\". Ignored.\n");
+        }
+    }
 }
+
 
 static void parse(const json &j, ReviewRule &o) {
-    o.reviewUrl = j.value("reviewUrl", "");
-    o.avatarRule = j.value("avatarRule", "");
-    o.contentRule = j.value("contentRule", "");
-    o.postTimeRule = j.value("postTimeRule", "");
-    o.reviewQuoteUrl = j.value("reviewQuoteUrl", "");
+    if (!j.is_object()) return;
 
-    o.voteUpUrl = j.value("voteUpUrl", "");
-    o.voteDownUrl = j.value("voteDownUrl", "");
-    o.postReviewUrl = j.value("postReviewUrl", "");
-    o.postQuoteUrl = j.value("postQuoteUrl", "");
-    o.deleteUrl = j.value("deleteUrl", "");
+    for (auto& [key, value] : j.items()) {
+
+        if (key == "reviewUrl")        o.reviewUrl = value.get<std::string>();
+        else if (key == "avatarRule")  o.avatarRule = value.get<std::string>();
+        else if (key == "contentRule") o.contentRule = value.get<std::string>();
+        else if (key == "postTimeRule")o.postTimeRule = value.get<std::string>();
+        else if (key == "reviewQuoteUrl") o.reviewQuoteUrl = value.get<std::string>();
+
+        else if (key == "voteUpUrl")   o.voteUpUrl = value.get<std::string>();
+        else if (key == "voteDownUrl") o.voteDownUrl = value.get<std::string>();
+        else if (key == "postReviewUrl") o.postReviewUrl = value.get<std::string>();
+        else if (key == "postQuoteUrl")  o.postQuoteUrl = value.get<std::string>();
+        else if (key == "deleteUrl")     o.deleteUrl = value.get<std::string>();
+
+        else {
+            std::string keyName = "ReviewRule." + key;
+            debugPrint("Warning: Unknown field \"" + keyName + "\". Ignored.\n");
+        }
+    }
 }
+
 
 static void parse(const json &j, TocRule &o) {
-    o.preUpdateJs = j.value("preUpdateJs", "");
-    o.chapterList = j.value("chapterList", "");
-    o.chapterName = j.value("chapterName", "");
-    o.chapterUrl = j.value("chapterUrl", "");
-    o.formatJs = j.value("formatJs", "");
-    o.isVolume = j.value("isVolume", "");
-    o.isVip = j.value("isVip", "");
-    o.isPay = j.value("isPay", "");
-    o.updateTime = j.value("updateTime", "");
-    o.nextTocUrl = j.value("nextTocUrl", "");
+    if (!j.is_object()) return;
+
+    for (auto& [key, value] : j.items()) {
+
+        if (key == "preUpdateJs")   o.preUpdateJs = value.get<std::string>();
+        else if (key == "chapterList") o.chapterList = value.get<std::string>();
+        else if (key == "chapterName") o.chapterName = value.get<std::string>();
+        else if (key == "chapterUrl")  o.chapterUrl = value.get<std::string>();
+        else if (key == "formatJs")    o.formatJs = value.get<std::string>();
+        else if (key == "isVolume")    o.isVolume = value.get<std::string>();
+        else if (key == "isVip")       o.isVip = value.get<std::string>();
+        else if (key == "isPay")       o.isPay = value.get<std::string>();
+        else if (key == "updateTime")  o.updateTime = value.get<std::string>();
+        else if (key == "nextTocUrl")  o.nextTocUrl = value.get<std::string>();
+
+        else {
+            std::string keyName = "TocRule." + key;
+            debugPrint("Warning: Unknown field \"" + keyName + "\". Ignored.\n");
+        }
+    }
 }
 
+
 static void parse(const json &j, BookSource &o) {
-    o.bookSourceUrl = j.value("bookSourceUrl", "");
-    o.bookSourceName = j.value("bookSourceName", "");
-    o.bookSourceGroup = j.value("bookSourceGroup", "");
+    for (auto& [key, value] : j.items()) {
+        if (key == "bookSourceUrl")
+            o.bookSourceUrl = value.get<std::string>();
+        else if (key == "bookSourceName")
+            o.bookSourceName = value.get<std::string>();
+        else if (key == "bookSourceGroup")
+            o.bookSourceGroup = value.get<std::string>();
+        else if (key == "bookSourceType")
+            o.bookSourceType = value.get<int>();
+        else if (key == "bookUrlPattern")
+            o.bookUrlPattern = value.get<std::string>();
+        else if (key == "customOrder")
+            o.customOrder = value.get<int>();
+        else if (key == "enabled")
+            o.enabled = value.get<bool>();
+        else if (key == "enabledExplore")
+            o.enabledExplore = value.get<bool>();
+        else if (key == "jsLib")
+            o.jsLib = value.get<std::string>();
+        else if (key == "enabledCookieJar")
+            o.enabledCookieJar = value.get<bool>();
+        else if (key == "concurrentRate")
+            o.concurrentRate = value.get<std::string>();
+        else if (key == "header")
+            o.header = value.get<std::string>();
+        else if (key == "loginUrl")
+            o.loginUrl = value.get<std::string>();
+        else if (key == "loginUi")
+            o.loginUi = value.get<std::string>();
+        else if (key == "loginCheckJs")
+            o.loginCheckJs = value.get<std::string>();
+        else if (key == "coverDecodeJs")
+            o.coverDecodeJs = value.get<std::string>();
+        else if (key == "bookSourceComment")
+            o.bookSourceComment = value.get<std::string>();
+        else if (key == "variableComment")
+            o.variableComment = value.get<std::string>();
+        else if (key == "lastUpdateTime") {
+            // 支持字符串或整数
+            if (value.is_number_integer())
+                o.lastUpdateTime = value.get<long long>();
+            else if (value.is_string())
+                o.lastUpdateTime = std::stoll(value.get<std::string>());
+            else
+                debugPrint("Error: Field \"lastUpdateTime\" must be integer or string.\n");
+        }
+        else if (key == "respondTime") {
+            if (value.is_number_integer())
+                o.respondTime = value.get<long long>();
+            else if (value.is_string())
+                o.respondTime = std::stoll(value.get<std::string>());
+            else
+                debugPrint("Error: Field \"respondTime\" must be integer or string.\n");
+        }
+        else if (key == "weight")
+            o.weight = value.get<int>();
+        else if (key == "exploreUrl")
+            o.exploreUrl = value.get<std::string>();
+        else if (key == "exploreScreen")
+            o.exploreScreen = value.get<std::string>();
+        else if (key == "searchUrl")
+            o.searchUrl = value.get<std::string>();
 
-    o.bookSourceType = j.value("bookSourceType", 0);
-    o.bookUrlPattern = j.value("bookUrlPattern", "");
-    o.customOrder = j.value("customOrder", 0);
-    o.enabled = j.value("enabled", true);
-    o.enabledExplore = j.value("enabledExplore", true);
+        // 嵌套字段处理
+        else if (key == "ruleExplore")
+            parse(value, o.ruleExplore);
 
-    o.jsLib = j.value("jsLib", "");
-    o.enabledCookieJar = j.value("enabledCookieJar", true);
-    o.concurrentRate = j.value("concurrentRate", "");
-    o.header = j.value("header", "");
+        else if (key == "ruleSearch")
+            parse(value, o.ruleSearch);
 
-    o.loginUrl = j.value("loginUrl", "");
-    o.loginUi = j.value("loginUi", "");
-    o.loginCheckJs = j.value("loginCheckJs", "");
+        else if (key == "ruleBookInfo")
+            parse(value, o.ruleBookInfo);
 
-    o.coverDecodeJs = j.value("coverDecodeJs", "");
+        else if (key == "ruleToc")
+            parse(value, o.ruleToc);
 
-    o.bookSourceComment = j.value("bookSourceComment", "");
-    o.variableComment = j.value("variableComment", "");
+        else if (key == "ruleContent")
+            parse(value, o.ruleContent);
 
-    o.lastUpdateTime = j.value("lastUpdateTime", 0LL);
-    o.respondTime = j.value("respondTime", 180000LL);
-    o.weight = j.value("weight", 0);
+        else if (key == "ruleReview")
+            parse(value, o.ruleReview);
 
-    o.exploreUrl = j.value("exploreUrl", "");
-    o.exploreScreen = j.value("exploreScreen", "");
-
-    o.searchUrl = j.value("searchUrl", "");
-
-    if (j.contains("ruleExplore"))
-        parse(j.at("ruleExplore"), o.ruleExplore);
-
-    if (j.contains("ruleSearch"))
-        parse(j.at("ruleSearch"), o.ruleSearch);
-
-    if (j.contains("ruleBookInfo"))
-        parse(j.at("ruleBookInfo"), o.ruleBookInfo);
-
-    if (j.contains("ruleToc"))
-        parse(j.at("ruleToc"), o.ruleToc);
-
-    if (j.contains("ruleContent"))
-        parse(j.at("ruleContent"), o.ruleContent);
-
-    if (j.contains("ruleReview"))
-        parse(j.at("ruleReview"), o.ruleReview);
+        // 未知字段
+        else {
+            std::string keyName = "BookSource." + key;
+            debugPrint("Warning: Unknown field \"" + keyName + "\". Ignored.\n");
+        }
+    }
 }
 
 BookSource BookSourceParser::parseBookSource(const std::string& jsonStr) {
@@ -149,12 +280,19 @@ std::vector<BookSource> BookSourceParser::parseBookSourceList(const std::string&
         return list;
     }
 
-    list.reserve(arr.size());           // 预留空间
+    list.reserve(arr.size());
 
+    int index = 0;
     for (const auto& item : arr) {
-        BookSource o;
-        parse(item, o);
-        list.push_back(std::move(o));
+        try {
+            BookSource o;
+            parse(item, o);   // 如果解析失败，就会抛异常
+            list.push_back(std::move(o));
+        } catch (std::exception& e) {
+            std::cerr << "Failed to parse element at index " << index
+                      << ": " << e.what() << "\n";
+        }
+        index++;
     }
 
     return list;
