@@ -7,6 +7,7 @@
 #include <cassert>
 #include <fstream>
 #include <sstream>
+#include "project_root.h"
 
 struct Metainfo {};
 
@@ -95,7 +96,7 @@ int main() {
         exeJs(engine, "num;");
     } catch (const std::exception &e) {}
 
-    std::string bsFile = "/Users/Peyilo/Development/Code/Clion/booksource/test/booksources.json";
+    std::string bsFile = std::string(CMAKE_CURRENT_SOURCE_DIR) + "/resource/booksources.json";
     auto json = load_file(bsFile);
     auto bookSources = BookSourceParser::parseBookSourceList(json);
     auto source = bookSources[0];

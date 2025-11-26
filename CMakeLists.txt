@@ -3,6 +3,7 @@ project(booksource LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 
+enable_testing()
 add_subdirectory(test)
 add_subdirectory(third_party/quickjs)
 

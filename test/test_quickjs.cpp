@@ -6,6 +6,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include "project_root.h"
 
 /**
  * @param filename 文件路径
@@ -28,11 +29,7 @@ std::string load_js_file(const std::string& filename)
  * @param engine Quick Js引擎
  */
 void test_complex_js(QuickJsEngine &engine) {
-#ifdef WIN32
-    const std::string filename = R"(D:\Code\Clion\booksource\test\complex_test.js)";
-#else
-    const std::string filename = R"(/Users/Peyilo/Development/Code/Clion/booksource/test/complex_test.js)";
-#endif
+    const std::string filename = std::string(CMAKE_CURRENT_SOURCE_DIR) + "/resource/complex_test.js";
     const std::string script = load_js_file(filename);
     if (script.empty()) {
         fprintf(stderr, "Failed to load JS file: %s\n", filename.c_str());
