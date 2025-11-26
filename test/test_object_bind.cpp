@@ -2,7 +2,11 @@
 #include <string>
 #include <booksource/engine.h>
 #include <booksource/bind.h>
+#include <booksource/booksource.h>
+#include <booksource/booksource_parser.h>
 #include <cassert>
+#include <fstream>
+#include <sstream>
 
 struct Metainfo {};
 
@@ -36,6 +40,18 @@ void initBookClassInfo() {
 void exeJs(const QuickJsEngine &engine, const std::string &code) {
     const std::string res = engine.eval(code);
     std::cout << "[Result] " << res << std::endl;
+}
+
+std::string load_file(const std::string& filename)
+{
+    std::ifstream file(filename, std::ios::in | std::ios::binary);
+    if (!file.is_open()) {
+        return {};
+    }
+
+    std::ostringstream ss;
+    ss << file.rdbuf();
+    return ss.str();
 }
 
 int main() {
@@ -77,5 +93,29 @@ int main() {
         exeJs(engine, "num;");
     } catch (const std::exception &e) {}
 
+    std::string bsFile = "/Users/Peyilo/Development/Code/Clion/booksource/test/booksources.json";
+    auto json = load_file(bsFile);
+    auto bookSources = BookSourceParser::parseBookSourceList(json);
+    auto source = bookSources[0];
+    engine.addObjectBinding("source", &bookSources.front());
+    exeJs(engine, "source.bookSourceName");
+    exeJs(engine, "source.bookSourceUrl");
+
+    // 测试在js中修改，会不会影响cpp中的变量
+    // TODO: 没有双向绑定
+    exeJs(engine, "source.bookSourceUrl = \"booksource url\";");
+    exeJs(engine, "source.bookSourceUrl");
+    std::cout << "source.bookSourceUrl: " << source.bookSourceUrl << std::endl;
+
+    exeJs(engine, "source.bookSourceGroup");
+    exeJs(engine, "source.bookSourceType");
+    exeJs(engine, "source.enabledCookieJar");
+    exeJs(engine, "source.ruleToc");
+
+    // 测试在cpp修改以后，会不会影响js中的变量
+    // TODO: 没有完成双向绑定
+    exeJs(engine, "source.ruleToc.chapterList");
+    source.ruleToc.chapterList = "this is rule after changed";
+    exeJs(engine, "source.ruleToc.chapterList");
     return 0;
 }

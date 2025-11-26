@@ -3,7 +3,6 @@
 #include <booksource/booksource.h>
 #include <booksource/engine.h>
 
-
 namespace BindingMacros {
 
 #define BEGIN_CLASS_BINDING(T) \
