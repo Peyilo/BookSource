@@ -30,6 +30,7 @@ public:
     /// 重新创建上下文（清空状态）
     void reset();
 
+    // addValue()只是往js环境中注入了一个变量，并没有与cpp变量完成绑定
     void addValue(const std::string &name, const std::string &value) const;
 
     void addValue(const std::string &name, const char *value) const;
@@ -121,6 +122,8 @@ public:
 
     // 添加一个全局函数：用于屏幕打印输出
     void addPrintFunc(const std::string &funcName) const;
+
+    void addAssertFunc(const std::string &funcName) const;
 
     JSContext *getContext() const { return context; }
 
@@ -330,7 +333,7 @@ public:
             return obj;
         }
 
-        // 只保存指针，不负责 delete
+        // 将instance指针注入到该obj对象中，只保存指针，不负责 delete
         JS_SetOpaque(obj, instance);
 
         return obj;
@@ -398,7 +401,6 @@ private:
         }
     }
 
-
     static JSValue methodDispatcher(JSContext *ctx,
                                     JSValueConst this_val, int argc, JSValueConst *argv, int magic) {
         auto *obj = static_cast<T *>(JS_GetOpaque2(ctx, this_val, s_classId));
@@ -409,6 +411,7 @@ private:
     static void build(JSContext *ctx) {
         const JSValue proto = JS_NewObject(ctx);
 
+        // 绑定 field
         for (int i = 0; i < s_fields.size(); i++) {
             const auto &f = s_fields[i];
 

@@ -179,6 +179,51 @@ void QuickJsEngine::addPrintFunc(const std::string &funcName) const {
     JS_FreeValue(context, global);
 }
 
+// JS 中调用的 assert
+static JSValue js_assert(JSContext *ctx,
+                         JSValueConst this_val,
+                         int argc,
+                         JSValueConst *argv) {
+
+    if (argc < 1) {
+        return JS_ThrowTypeError(ctx, "assert() requires at least 1 argument");
+    }
+
+    if (JS_ToBool(ctx, argv[0])) {
+        return JS_UNDEFINED;   // 断言通过
+    }
+
+    // 获取错误消息
+    const char* msg = nullptr;
+    if (argc >= 2) {
+        msg = JS_ToCString(ctx, argv[1]);
+    }
+
+    JSValue err;
+    if (msg) {
+        err = JS_ThrowTypeError(ctx, "Assertion failed: %s", msg);
+        JS_FreeCString(ctx, msg);
+    } else {
+        err = JS_ThrowTypeError(ctx, "Assertion failed");
+    }
+
+    return err;
+}
+
+void QuickJsEngine::addAssertFunc(const std::string &funcName) const {
+    if (!context)
+        throw std::runtime_error("QuickJsEngine: context is null");
+
+    const JSValue global = JS_GetGlobalObject(context);
+    JS_SetPropertyStr(
+        context,
+        global,
+        funcName.c_str(),
+        JS_NewCFunction(context, js_assert, funcName.c_str(), 2) // 参数：cond, msg
+    );
+    JS_FreeValue(context, global);
+}
+
 void QuickJsEngine::deleteValue(const std::string &name) {
     if (!context)
         throw std::runtime_error("QuickJsEngine: context is null");

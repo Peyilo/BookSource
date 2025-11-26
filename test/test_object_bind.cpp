@@ -38,8 +38,9 @@ void initBookClassInfo() {
 }
 
 void exeJs(const QuickJsEngine &engine, const std::string &code) {
-    const std::string res = engine.eval(code);
+    if (const std::string res = engine.eval(code); res != "undefined") {
     std::cout << "[Result] " << res << std::endl;
+    }
 }
 
 std::string load_file(const std::string& filename)
@@ -56,14 +57,15 @@ std::string load_file(const std::string& filename)
 
 int main() {
     QuickJsEngine engine;
-    initBookClassInfo();
     Binding::initEngineClassInfo();
+    engine.addPrintFunc("print");
+    engine.addAssertFunc("assert");
+    initBookClassInfo();
 
     Book book{"first book", "first author"};
     Book book2{"second book", "second author"};
     engine.addObjectBinding("book", &book);
     engine.addObjectBinding("book2", &book2);
-    engine.addPrintFunc("print");
 
     // 验证绑定后，能否在js中访问字段和方法
     exeJs(engine, "book.name + ' / ' + book.author");
@@ -97,25 +99,22 @@ int main() {
     auto json = load_file(bsFile);
     auto bookSources = BookSourceParser::parseBookSourceList(json);
     auto source = bookSources[0];
-    engine.addObjectBinding("source", &bookSources.front());
+    engine.addObjectBinding("source", &source);
     exeJs(engine, "source.bookSourceName");
     exeJs(engine, "source.bookSourceUrl");
 
     // 测试在js中修改，会不会影响cpp中的变量
-    // TODO: 没有双向绑定
     exeJs(engine, "source.bookSourceUrl = \"booksource url\";");
-    exeJs(engine, "source.bookSourceUrl");
-    std::cout << "source.bookSourceUrl: " << source.bookSourceUrl << std::endl;
+    assert(source.bookSourceUrl == "booksource url");
 
     exeJs(engine, "source.bookSourceGroup");
     exeJs(engine, "source.bookSourceType");
     exeJs(engine, "source.enabledCookieJar");
     exeJs(engine, "source.ruleToc");
+    exeJs(engine, "source.ruleToc.chapterList");
 
     // 测试在cpp修改以后，会不会影响js中的变量
-    // TODO: 没有完成双向绑定
-    exeJs(engine, "source.ruleToc.chapterList");
     source.ruleToc.chapterList = "this is rule after changed";
-    exeJs(engine, "source.ruleToc.chapterList");
+    exeJs(engine, "assert(source.ruleToc.chapterList == \"this is rule after changed\")");
     return 0;
 }
