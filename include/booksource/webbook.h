@@ -76,55 +76,38 @@ struct Book {
     std::string charset = "";
     // 类型
     int type = 0; // BookType.text → 你需要自己定义枚举
-
     // 自定义分组索引号
     long group = 0;
-
     // 最新章节标题
     std::string latestChapterTitle = "";
-
     // 最新章节标题更新时间
     long latestChapterTime = currentTimeMillis();
-
     // 最近一次更新书籍信息的时间
     long lastCheckTime = currentTimeMillis();
-
     // 最近一次发现新章节的数量
     int lastCheckCount = 0;
-
     // 书籍目录总数
     int totalChapterNum = 0;
-
     // 当前章节名称
     std::string durChapterTitle = "";
-
     // 当前章节索引
     int durChapterIndex = 0;
-
     // 当前阅读的进度(首行字符的索引位置)
     int durChapterPos = 0;
-
     // 最近一次阅读书籍的时间
     long durChapterTime = currentTimeMillis();
-
     // 字数
     std::string wordCount = "";
-
     // 刷新书架时更新书籍信息
     bool canUpdate = true;
-
     // 手动排序
     int order = 0;
-
     // 书源排序
     int originOrder = 0;
-
     // 自定义书籍变量信息
     std::string variable = "";
-
     // 阅读设置
     ReadConfig readConfig;    // Kotlin 是 nullable，但你不想 optional → 内嵌结构体
-
     // 同步时间
     long syncTime = 0;
 };
