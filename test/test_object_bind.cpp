@@ -6,7 +6,7 @@
 #include <cassert>
 #include <fstream>
 #include <sstream>
-#include "project_root.h"
+#include "test_utils.h"
 
 struct Metainfo {};
 
@@ -43,17 +43,7 @@ void exeJs(const QuickJsEngine &engine, const std::string &code) {
     }
 }
 
-std::string load_file(const std::string& filename)
-{
-    std::ifstream file(filename, std::ios::in | std::ios::binary);
-    if (!file.is_open()) {
-        return {};
-    }
 
-    std::ostringstream ss;
-    ss << file.rdbuf();
-    return ss.str();
-}
 
 int main() {
     QuickJsEngine engine;
@@ -95,8 +85,7 @@ int main() {
         exeJs(engine, "num;");
     } catch (const std::exception &e) {}
 
-    std::string bsFile = std::string(CMAKE_CURRENT_SOURCE_DIR) + "/resource/bs1.json";
-    auto json = load_file(bsFile);
+    auto json = getResourceText("bs1.json");
     auto bookSources = BookSourceParser::parseBookSourceList(json);
     auto source = bookSources[0];
     engine.addObjectBinding("source", &source);

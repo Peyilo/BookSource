@@ -1,0 +1,36 @@
+#pragma once
+#include <fstream>
+#include <sstream>
+#include <iostream>
+#include <string>
+
+// 项目根目录（CMakeLists.txt 顶层目录）
+#define PROJECT_ROOT         "@PROJECT_ROOT_DIR@"
+
+// 当前 CMakeLists 所在目录
+#define CMAKE_CURRENT_SOURCE_DIR   "@CMAKE_CURRENT_SOURCE_DIR@"
+
+// 当前构建目录
+#define PROJECT_BINARY_DIR   "@PROJECT_BINARY_DIR@"
+
+
+inline std::string loadFile(const std::string& filename)
+{
+    std::ifstream file(filename, std::ios::in | std::ios::binary);
+    if (!file.is_open()) {
+        return {};
+    }
+
+    std::ostringstream ss;
+    ss << file.rdbuf();
+    return ss.str();
+}
+
+inline std::string getResource(const std::string &fileName) {
+    return std::string(CMAKE_CURRENT_SOURCE_DIR) + "/resource/" + fileName;
+}
+
+inline std::string getResourceText(const std::string &fileName) {
+    const std::string filename = getResource(fileName);
+    return loadFile(filename);
+}

@@ -4,7 +4,7 @@
 
 using json = nlohmann::json;
 
-static void debugPrint(std::string msg) {}
+static void debugPrint(const std::string& msg) {}
 
 static void parse(const json &j, BookInfoRule &o) {
     // Sometimes BookInfoRule is an array → ignore
