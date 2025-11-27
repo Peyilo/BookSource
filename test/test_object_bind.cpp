@@ -5,7 +5,6 @@
 #include <booksource/booksource_parser.h>
 #include <cassert>
 #include <fstream>
-#include <sstream>
 #include "test_utils.h"
 
 struct Metainfo {};

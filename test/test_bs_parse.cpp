@@ -2,6 +2,7 @@
 // Created by 夏莳 on 2025/11/26.
 //
 
+#include <iostream>
 #include <booksource/booksource_parser.h>
 #include "test_utils.h"
 

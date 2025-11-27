@@ -276,7 +276,7 @@ std::vector<BookSource> BookSourceParser::parseBookSourceList(const std::string&
     std::vector<BookSource> list;
 
     if (!arr.is_array()) {
-        std::cerr << "parseBookSourceList 失败：JSON 不是数组\n";
+        std::cerr << "parseBookSourceList failed：JSON is not array\n";
         return list;
     }
 
